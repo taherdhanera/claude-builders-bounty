@@ -1,0 +1,209 @@
+{
+  "name": "Weekly GitHub Activity Summary with Claude",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 17 * * 5"
+            }
+          ]
+        }
+      },
+      "id": "8e378520-6ba0-4e31-8f6c-9ff400a98601",
+      "name": "Friday 5pm Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -860,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const repo = $env.GITHUB_REPO || '';\nconst githubToken = $env.GITHUB_TOKEN || '';\nconst anthropicApiKey = $env.ANTHROPIC_API_KEY || '';\nconst discordWebhookUrl = $env.DISCORD_WEBHOOK_URL || '';\nconst [owner, name] = repo.split('/');\nif (!owner || !name) {\n  throw new Error('Set GITHUB_REPO as owner/repo');\n}\nif (!githubToken) {\n  throw new Error('Set GITHUB_TOKEN for GitHub API access');\n}\nif (!anthropicApiKey) {\n  throw new Error('Set ANTHROPIC_API_KEY for Claude summary generation');\n}\nif (!discordWebhookUrl) {\n  throw new Error('Set DISCORD_WEBHOOK_URL for summary delivery');\n}\nconst language = ($env.SUMMARY_LANGUAGE || 'EN').toUpperCase() === 'FR' ? 'FR' : 'EN';\nconst until = new Date();\nconst since = new Date(until.getTime() - 7 * 24 * 60 * 60 * 1000);\nreturn [{\n  json: {\n    githubRepo: repo,\n    owner,\n    repo: name,\n    sinceIso: since.toISOString(),\n    untilIso: until.toISOString(),\n    language,\n    githubToken,\n    anthropicApiKey,\n    discordWebhookUrl\n  }\n}];"
+      },
+      "id": "ddf2e4a5-fb43-4397-8b5d-347df52fb179",
+      "name": "Build Weekly Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -620,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $json;\nconst headers = {\n  Accept: 'application/vnd.github+json',\n  Authorization: `Bearer ${config.githubToken}`,\n  'X-GitHub-Api-Version': '2022-11-28'\n};\nasync function githubJson(path) {\n  const response = await fetch(`https://api.github.com${path}`, { headers });\n  if (!response.ok) {\n    const body = await response.text();\n    throw new Error(`GitHub API ${path} failed with ${response.status}: ${body.slice(0, 500)}`);\n  }\n  return response.json();\n}\nconst sinceDate = config.sinceIso.slice(0, 10);\nconst untilDate = config.untilIso.slice(0, 10);\nconst repoPath = `${config.owner}/${config.repo}`;\nconst commits = await githubJson(`/repos/${repoPath}/commits?since=${encodeURIComponent(config.sinceIso)}&until=${encodeURIComponent(config.untilIso)}&per_page=100`);\nconst issueQuery = encodeURIComponent(`repo:${repoPath} is:issue is:closed closed:${sinceDate}..${untilDate}`);\nconst prQuery = encodeURIComponent(`repo:${repoPath} is:pr is:merged merged:${sinceDate}..${untilDate}`);\nconst closedIssuePayload = await githubJson(`/search/issues?q=${issueQuery}&per_page=100`);\nconst mergedPrPayload = await githubJson(`/search/issues?q=${prQuery}&per_page=100`);\nconst compactCommits = (commits || []).slice(0, 40).map((commit) => ({\n  sha: (commit.sha || '').slice(0, 7),\n  author: commit.commit?.author?.name || commit.author?.login || 'unknown',\n  message: (commit.commit?.message || '').split('\\n')[0]\n}));\nconst compactIssues = (closedIssuePayload.items || []).slice(0, 40).map((issue) => ({\n  number: issue.number,\n  title: issue.title,\n  closedAt: issue.closed_at,\n  url: issue.html_url\n}));\nconst compactPrs = (mergedPrPayload.items || []).slice(0, 40).map((pr) => ({\n  number: pr.number,\n  title: pr.title,\n  mergedAt: pr.closed_at,\n  author: pr.user?.login || 'unknown',\n  url: pr.html_url\n}));\nreturn [{\n  json: {\n    ...config,\n    counts: {\n      commits: commits.length,\n      closedIssues: closedIssuePayload.total_count || compactIssues.length,\n      mergedPrs: mergedPrPayload.total_count || compactPrs.length\n    },\n    commits: compactCommits,\n    closedIssues: compactIssues,\n    mergedPrs: compactPrs\n  }\n}];"
+      },
+      "id": "63d18d0e-7d59-44ce-95e2-c21a7f81bf4d",
+      "name": "Fetch GitHub API Activity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -360,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const instruction = $json.language === 'FR'\n  ? 'Write the narrative summary in French.'\n  : 'Write the narrative summary in English.';\nconst prompt = `${instruction}\\n\\nCreate a concise weekly engineering narrative for ${$json.githubRepo}. Include sections: Overview, Highlights, Merged PRs, Closed Issues, Risks or Follow-ups. Be specific, cite issue and PR numbers when available, and do not invent work.\\n\\nWindow: ${$json.sinceIso} to ${$json.untilIso}\\n\\nCounts:\\n${JSON.stringify($json.counts, null, 2)}\\n\\nCommits:\\n${JSON.stringify($json.commits, null, 2)}\\n\\nClosed issues:\\n${JSON.stringify($json.closedIssues, null, 2)}\\n\\nMerged PRs:\\n${JSON.stringify($json.mergedPrs, null, 2)}`;\nreturn [{\n  json: {\n    ...$json,\n    claudeRequest: {\n      model: 'claude-sonnet-4-20250514',\n      max_tokens: 1200,\n      messages: [\n        {\n          role: 'user',\n          content: prompt\n        }\n      ]\n    }\n  }\n}];"
+      },
+      "id": "fbc1fa82-f1e9-4a94-9984-04f14a85bb1f",
+      "name": "Build Claude Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{$json.anthropicApiKey}}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json.claudeRequest}}",
+        "options": {}
+      },
+      "id": "55946bec-7941-4810-a6f2-4d062ac6f9b2",
+      "name": "Generate Claude Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        180,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $('Build Claude Request').first().json;\nconst response = $json;\nconst text = response.content?.map((part) => part.text || '').join('\\n').trim() || 'Claude returned an empty summary.';\nreturn [{\n  json: {\n    discordWebhookUrl: config.discordWebhookUrl,\n    content: `## Weekly summary for ${config.githubRepo}\\n\\n${text}`\n  }\n}];"
+      },
+      "id": "67d0b742-a97d-4f0b-8fb1-78a1fc04edfd",
+      "name": "Prepare Discord Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$json.discordWebhookUrl}}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \"content\": $json.content.slice(0, 1900) } }}",
+        "options": {}
+      },
+      "id": "d987712d-7f2d-4e33-a84d-58fb7da3ce64",
+      "name": "Send Discord Summary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Friday 5pm Schedule": {
+      "main": [
+        [
+          {
+            "node": "Build Weekly Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Weekly Config": {
+      "main": [
+        [
+          {
+            "node": "Fetch GitHub API Activity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch GitHub API Activity": {
+      "main": [
+        [
+          {
+            "node": "Build Claude Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Claude Request": {
+      "main": [
+        [
+          {
+            "node": "Generate Claude Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Claude Summary": {
+      "main": [
+        [
+          {
+            "node": "Prepare Discord Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Discord Message": {
+      "main": [
+        [
+          {
+            "node": "Send Discord Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC"
+  },
+  "versionId": "9a6070b2-58f4-45b4-a952-61f433becfbf",
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
