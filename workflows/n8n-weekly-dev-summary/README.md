@@ -25,6 +25,18 @@ Local validation completed before PR:
 - JSON parse validation
 - Workflow shape validation for required n8n node types
 - Code-node syntax validation
+- Acceptance regression coverage with `node workflows/n8n-weekly-dev-summary/tests/validate-workflow.mjs`
 - Live GitHub API dry run against `n8n-io/n8n`: 100 commits, 74 closed issues, and 260 merged PRs were fetched for the rolling seven-day window and converted into a Claude request
 
 No secrets are included in this workflow. Tokens and destination URLs are read from n8n environment variables.
+
+## Reviewer Checks
+
+Run:
+
+```bash
+node workflows/n8n-weekly-dev-summary/tests/validate-workflow.mjs
+git diff --check
+```
+
+The validator verifies the importable workflow JSON, Friday 5pm schedule, GitHub commits/issues/PR fetch logic, Claude `claude-sonnet-4-20250514` request, Discord delivery, EN/FR configuration, five-step README, node JavaScript syntax, connection order, and secret hygiene.
