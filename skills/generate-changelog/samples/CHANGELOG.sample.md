@@ -1,13 +1,14 @@
 # Changelog
 
-## [Unreleased] - 2026-06-07
+## [Unreleased] - 2026-06-08
 
 ### Added
 
-- add generate-changelog skill and bash script (37277ca)
+- Add git changelog generator skill (f0a8592)
 - initial README with bounty board (1aeae2a)
 
 ### Changed
 
+- Upgrade changelog generator submission (c8e285a)
 - Initial commit (a80a580)
 
