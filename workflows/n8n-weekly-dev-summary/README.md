@@ -35,8 +35,9 @@ No secrets are included in this workflow. Tokens and destination URLs are read f
 Run:
 
 ```bash
+npm run test:n8n-weekly-summary
 node workflows/n8n-weekly-dev-summary/tests/validate-workflow.mjs
 git diff --check
 ```
 
-The validator verifies the importable workflow JSON, Friday 5pm schedule, GitHub commits/issues/PR fetch logic, Claude `claude-sonnet-4-20250514` request, Discord delivery, EN/FR configuration, five-step README, node JavaScript syntax, connection order, and secret hygiene.
+The validators verify the importable workflow JSON, Friday 5pm schedule, GitHub commits/issues/PR fetch logic, Claude `claude-sonnet-4-20250514` request, Discord delivery, EN/FR configuration, five-step README, node JavaScript syntax, connection order, secret hygiene, closed-issue and merged-PR query separation, payload bounds, and a deterministic greenfield smoke sample.

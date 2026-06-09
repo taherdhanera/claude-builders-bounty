@@ -1,0 +1,33 @@
+name: Test n8n weekly summary
+
+on:
+  pull_request:
+    paths:
+      - "package.json"
+      - ".github/workflows/test-n8n-weekly-summary.yml"
+      - "workflows/n8n-weekly-dev-summary/**"
+      - "workflows/README.md"
+  push:
+    paths:
+      - "package.json"
+      - ".github/workflows/test-n8n-weekly-summary.yml"
+      - "workflows/n8n-weekly-dev-summary/**"
+      - "workflows/README.md"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run validators
+        run: npm test
+
+      - name: Check whitespace
+        run: git diff --check
