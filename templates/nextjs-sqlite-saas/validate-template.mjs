@@ -35,6 +35,7 @@ const requiredTerms = [
   "better-sqlite3",
   "Turso",
   "Drizzle",
+  "middleware.ts",
   "Server Actions",
   "Route Handlers",
   "Zod",
@@ -67,6 +68,12 @@ if (numberedSmokeSteps < 4) {
   errors.push(`Expected at least 4 numbered greenfield smoke-test steps, found ${numberedSmokeSteps}`);
 }
 
+const antiPatternSection = template.split("## What We Do Not Do")[1]?.split("## Agent Workflow")[0] || "";
+const antiPatternCount = (antiPatternSection.match(/^- Do not /gm) || []).length;
+if (antiPatternCount < 9) {
+  errors.push(`Expected at least 9 explicit anti-pattern rows, found ${antiPatternCount}`);
+}
+
 const codeFenceCount = (template.match(/^```/gm) || []).length;
 if (codeFenceCount % 2 !== 0) {
   errors.push(`Unbalanced Markdown code fences: ${codeFenceCount}`);
@@ -74,6 +81,10 @@ if (codeFenceCount % 2 !== 0) {
 
 if (!/Expected behavior:[\s\S]*Claude Code[\s\S]*without asking/i.test(template)) {
   errors.push("Missing explicit expected Claude Code greenfield behavior");
+}
+
+if (!/middleware\.ts[\s\S]*auth redirects[\s\S]*coarse guards/i.test(template)) {
+  errors.push("Missing middleware scope guidance");
 }
 
 if (errors.length > 0) {
@@ -84,4 +95,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`CLAUDE.md template validation passed: ${requiredHeadings.length} headings, ${reasonCount} reasoned rules, ${numberedSmokeSteps} smoke-test steps.`);
+console.log(`CLAUDE.md template validation passed: ${requiredHeadings.length} headings, ${reasonCount} reasoned rules, ${antiPatternCount} anti-patterns, ${numberedSmokeSteps} smoke-test steps.`);

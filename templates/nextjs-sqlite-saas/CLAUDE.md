@@ -46,6 +46,7 @@ app/
         route.ts
   layout.tsx
   globals.css
+middleware.ts
 components/
   ui/
   forms/
@@ -91,6 +92,9 @@ Rules:
 
 - Keep `components/ui` generic and keep product-aware components under `features` or `components/forms`.
   Reason: generic UI should not import database, auth, billing, or feature-specific rules.
+
+- Keep `middleware.ts` limited to request routing, auth redirects, and coarse guards.
+  Reason: middleware runs before routes and should not contain product writes, database mutations, or billing logic.
 
 ## Naming Conventions
 
@@ -417,3 +421,5 @@ This template was reviewed against a blank Next.js 15 + SQLite SaaS setup path:
 4. Ask Claude Code to add a project creation form backed by SQLite.
 
 Expected behavior: Claude Code should infer the folder structure, create a migration, validate form input with Zod, keep the page server-first, implement a Server Action, add a focused test, and report validation commands without asking which stack, folder layout, migration style, or component pattern to use.
+
+Executable verifier: run `bash templates/nextjs-sqlite-saas/tests/smoke-greenfield.sh` from the repository root to copy this template into a temporary greenfield tree and verify that the required sections, SQLite conventions, Route Handler guidance, auth boundary rules, testing rules, and no-clarifying-questions instruction are present after copy.
