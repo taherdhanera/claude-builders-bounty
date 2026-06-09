@@ -16,6 +16,9 @@ bash hooks/destructive-command-blocker/install_settings.sh
 - `TRUNCATE`
 - `git push --force` and `git push --force-with-lease`
 - `DELETE FROM` statements that do not include a `WHERE` clause
+- `git reset --hard`
+- block-device destruction commands such as `dd of=/dev/*`, `mkfs`, and `wipefs`
+- remote script execution through `curl | bash` or `wget | sh`
 
 Blocked attempts are logged to `~/.claude/hooks/blocked.log` with:
 
@@ -69,4 +72,4 @@ The hook reads Claude Code's JSON payload from stdin. If a dangerous Bash comman
 bash hooks/destructive-command-blocker/test_block_destructive_bash.sh
 ```
 
-The regression script covers required blocked patterns, logging fields, the structured `hookSpecificOutput` deny schema, normal Bash passthrough, non-Bash tool passthrough, and SQL-text false-positive guards.
+The regression script covers required blocked patterns, expanded shell safety patterns, logging fields, the structured `hookSpecificOutput` deny schema, normal Bash passthrough, non-Bash tool passthrough, and SQL-text false-positive guards.
