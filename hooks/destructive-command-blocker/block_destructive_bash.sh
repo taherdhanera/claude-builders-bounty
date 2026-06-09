@@ -36,21 +36,27 @@ fi
 
 lower_command="$(printf '%s' "$command" | tr '[:upper:]' '[:lower:]')"
 reason=""
+sql_runner_pattern='(^|[[:space:];&|])(psql|mysql|sqlite3|sqlcmd)[[:space:]]'
+bare_sql_pattern='(^|[;&|])[[:space:]]*(drop[[:space:]]+table|delete[[:space:]]+from|truncate[[:space:]]+[^-[:space:]])'
+sql_execution_context=false
+if [[ "$lower_command" =~ $sql_runner_pattern ]] || [[ "$lower_command" =~ $bare_sql_pattern ]]; then
+  sql_execution_context=true
+fi
 
 if [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]]+-[[:alnum:]_-]*r[[:alnum:]_-]*f[[:alnum:]_-]*($|[[:space:]]) ]] ||
    [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]]+-[[:alnum:]_-]*f[[:alnum:]_-]*r[[:alnum:]_-]*($|[[:space:]]) ]] ||
    [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]]+-[[:alnum:]_-]*r[[:alnum:]_-]*[[:space:]]+-[[:alnum:]_-]*f[[:alnum:]_-]*($|[[:space:]]) ]] ||
    [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]]+-[[:alnum:]_-]*f[[:alnum:]_-]*[[:space:]]+-[[:alnum:]_-]*r[[:alnum:]_-]*($|[[:space:]]) ]]; then
   reason="rm -rf recursive deletion"
-elif [[ "$lower_command" =~ drop[[:space:]]+table ]]; then
+elif [[ "$sql_execution_context" == true && "$lower_command" =~ drop[[:space:]]+table ]]; then
   reason="DROP TABLE statement"
-elif [[ "$lower_command" =~ (^|[[:space:]\;\&\|])truncate($|[[:space:]\;\&\|]) ]]; then
+elif [[ "$sql_execution_context" == true && "$lower_command" =~ (^|[[:space:]\;\&\|])truncate($|[[:space:]\;\&\|]) ]]; then
   reason="TRUNCATE statement"
 elif [[ "$lower_command" =~ git[[:space:]]+push([^;\&\|])*--force([^[:alnum:]_-]|$) ]] ||
      [[ "$lower_command" =~ git[[:space:]]+push([^;\&\|])*--force-with-lease([^[:alnum:]_-]|$) ]] ||
      [[ "$lower_command" =~ git[[:space:]]+push([^;\&\|])*-f($|[[:space:]]) ]]; then
   reason="force push"
-elif [[ "$lower_command" =~ delete[[:space:]]+from ]] && [[ ! "$lower_command" =~ where ]]; then
+elif [[ "$sql_execution_context" == true && "$lower_command" =~ delete[[:space:]]+from ]] && [[ ! "$lower_command" =~ where ]]; then
   reason="DELETE FROM without WHERE clause"
 fi
 
@@ -71,5 +77,7 @@ printf '{"timestamp":"%s","command":"%s","project_path":"%s","reason":"%s"}\n' \
   "$(json_escape "$project_path")" \
   "$(json_escape "$reason")" >> "$log_path"
 
-printf 'Blocked destructive Bash command: %s. Review the command and rerun only if this destructive action is intentional and safe.\n' "$reason" >&2
-exit 2
+message="Blocked destructive Bash command: $reason. Review the command and rerun only if this destructive action is intentional and safe."
+printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"%s"}}\n' \
+  "$(json_escape "$message")"
+exit 0
