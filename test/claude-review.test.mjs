@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 
 import {
   analyzePullRequest,
@@ -117,4 +118,24 @@ test("formats structured markdown review", () => {
   assert.match(markdown, /## Identified Risks/);
   assert.match(markdown, /## Improvement Suggestions/);
   assert.match(markdown, /## Confidence: Medium/);
+});
+
+test("bundled real PR samples include required review sections", async () => {
+  const samplePaths = [
+    "sample-outputs/claude-builders-2271.md",
+    "sample-outputs/claude-builders-2277.md",
+    "sample-outputs/claude-builders-2284.md",
+  ];
+
+  assert.equal(samplePaths.length, 3);
+
+  for (const samplePath of samplePaths) {
+    const markdown = await readFile(samplePath, "utf8");
+
+    assert.match(markdown, /^# Claude PR Review/);
+    assert.match(markdown, /## Summary/);
+    assert.match(markdown, /## Identified Risks/);
+    assert.match(markdown, /## Improvement Suggestions/);
+    assert.match(markdown, /## Confidence: (Low|Medium|High)/);
+  }
 });

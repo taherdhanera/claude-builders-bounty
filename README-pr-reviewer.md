@@ -63,10 +63,11 @@ permissions:
 
 ## Examples
 
-Sample reviews generated from two real public PRs are included in:
+Sample reviews generated from three real public PRs are included in:
 
 - `sample-outputs/claude-builders-2277.md`
 - `sample-outputs/claude-builders-2271.md`
+- `sample-outputs/claude-builders-2284.md`
 
 ## Validation
 
