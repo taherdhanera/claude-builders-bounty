@@ -21,21 +21,127 @@
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
       "position": [
-        240,
-        300
+        200,
+        320
       ]
     },
     {
       "parameters": {
-        "jsCode": "const owner = $env.GITHUB_REPO_OWNER || 'claude-builders-bounty';\nconst repo = $env.GITHUB_REPO_NAME || 'claude-builders-bounty';\nconst language = (($env.SUMMARY_LANGUAGE || 'EN').toUpperCase() === 'FR') ? 'FR' : 'EN';\nconst token = $env.GITHUB_TOKEN || '';\nconst now = new Date();\nconst until = now.toISOString();\nconst sinceDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);\nconst since = sinceDate.toISOString();\n\nconst headers = {\n  Accept: 'application/vnd.github+json',\n  'X-GitHub-Api-Version': '2022-11-28',\n  'User-Agent': 'n8n-weekly-claude-summary'\n};\nif (token) headers.Authorization = `Bearer ${token}`;\n\nasync function getJson(url) {\n  const response = await fetch(url, { headers });\n  if (!response.ok) {\n    const text = await response.text();\n    throw new Error(`GitHub API failed ${response.status} for ${url}: ${text}`);\n  }\n  return response.json();\n}\n\nconst base = `https://api.github.com/repos/${owner}/${repo}`;\nconst commitsUrl = `${base}/commits?since=${encodeURIComponent(since)}&until=${encodeURIComponent(until)}&per_page=100`;\nconst issuesUrl = `${base}/issues?state=closed&since=${encodeURIComponent(since)}&per_page=100`;\nconst pullsUrl = `${base}/pulls?state=closed&sort=updated&direction=desc&per_page=100`;\n\nconst [commits, closedIssues, closedPulls] = await Promise.all([\n  getJson(commitsUrl),\n  getJson(issuesUrl),\n  getJson(pullsUrl)\n]);\n\nconst mergedPulls = closedPulls.filter((pr) => pr.merged_at && new Date(pr.merged_at) >= sinceDate);\nconst plainIssues = closedIssues.filter((issue) => !issue.pull_request && issue.closed_at && new Date(issue.closed_at) >= sinceDate);\n\nfunction compactCommit(commit) {\n  return {\n    sha: commit.sha.slice(0, 7),\n    author: commit.commit.author?.name || commit.author?.login || 'unknown',\n    date: commit.commit.author?.date,\n    message: commit.commit.message.split('\\n')[0],\n    url: commit.html_url\n  };\n}\n\nfunction compactIssue(issue) {\n  return {\n    number: issue.number,\n    title: issue.title,\n    author: issue.user?.login || 'unknown',\n    closedAt: issue.closed_at,\n    url: issue.html_url\n  };\n}\n\nfunction compactPull(pr) {\n  return {\n    number: pr.number,\n    title: pr.title,\n    author: pr.user?.login || 'unknown',\n    mergedAt: pr.merged_at,\n    url: pr.html_url\n  };\n}\n\nconst activity = {\n  repository: `${owner}/${repo}`,\n  period: { since, until },\n  language,\n  commits: commits.map(compactCommit),\n  closedIssues: plainIssues.map(compactIssue),\n  mergedPulls: mergedPulls.map(compactPull)\n};\n\nconst languageInstruction = language === 'FR'\n  ? 'Write the summary in French.'\n  : 'Write the summary in English.';\n\nconst prompt = `You are preparing a weekly engineering update for ${activity.repository}. ${languageInstruction}\\n\\nUse this JSON activity data to write a concise narrative summary with: 1) headline, 2) shipped highlights, 3) issue and PR outcomes, 4) notable contributors, 5) next-week watch items. Avoid inventing details.\\n\\n${JSON.stringify(activity, null, 2)}`;\n\nreturn [{ json: { ...activity, prompt } }];"
+        "jsCode": "const owner = $env.GITHUB_REPO_OWNER || 'claude-builders-bounty';\nconst repo = $env.GITHUB_REPO_NAME || 'claude-builders-bounty';\nconst language = (($env.SUMMARY_LANGUAGE || 'EN').toUpperCase() === 'FR') ? 'FR' : 'EN';\nconst now = new Date();\nconst until = now.toISOString();\nconst sinceDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);\nconst since = sinceDate.toISOString();\nconst base = `https://api.github.com/repos/${owner}/${repo}`;\nreturn [{\n  json: {\n    owner,\n    repo,\n    repository: `${owner}/${repo}`,\n    language,\n    since,\n    until,\n    commitsUrl: `${base}/commits?since=${encodeURIComponent(since)}&until=${encodeURIComponent(until)}&per_page=100`,\n    issuesUrl: `${base}/issues?state=closed&since=${encodeURIComponent(since)}&per_page=100`,\n    pullsUrl: `${base}/pulls?state=closed&sort=updated&direction=desc&per_page=100`\n  }\n}];"
       },
-      "id": "3d19f355-5a30-48a7-b3dd-5a85cf3b07f2",
-      "name": "Fetch GitHub Activity",
+      "id": "cad02d2a-3b51-4a7b-9f3c-34c8eaf7c70a",
+      "name": "Prepare Config",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        480,
-        300
+        440,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$json.commitsUrl}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-weekly-claude-summary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "97303380-384e-46f3-a157-58d90e6da98d",
+      "name": "Get Commits",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        680,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$('Prepare Config').first().json.issuesUrl}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-weekly-claude-summary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "70633d90-0722-41bc-8462-ccba360bb8ab",
+      "name": "Get Closed Issues",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        920,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{$('Prepare Config').first().json.pullsUrl}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            },
+            {
+              "name": "User-Agent",
+              "value": "n8n-weekly-claude-summary"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "014b75de-10aa-41e7-9bb8-4f4f7df9197d",
+      "name": "Get Closed Pulls",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1160,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const config = $('Prepare Config').first().json;\nconst sinceDate = new Date(config.since);\n\nfunction nodeItems(nodeName) {\n  const values = $(nodeName).all().map((item) => item.json);\n  if (values.length === 1 && Array.isArray(values[0])) {\n    return values[0];\n  }\n  return values;\n}\n\nfunction compactCommit(commit) {\n  return {\n    sha: (commit.sha || '').slice(0, 7),\n    author: commit.commit?.author?.name || commit.author?.login || 'unknown',\n    date: commit.commit?.author?.date,\n    message: (commit.commit?.message || '').split('\\n')[0],\n    url: commit.html_url\n  };\n}\n\nfunction compactIssue(issue) {\n  return {\n    number: issue.number,\n    title: issue.title,\n    author: issue.user?.login || 'unknown',\n    closedAt: issue.closed_at,\n    url: issue.html_url\n  };\n}\n\nfunction compactPull(pr) {\n  return {\n    number: pr.number,\n    title: pr.title,\n    author: pr.user?.login || 'unknown',\n    mergedAt: pr.merged_at,\n    url: pr.html_url\n  };\n}\n\nconst commits = nodeItems('Get Commits').map(compactCommit);\nconst closedIssues = nodeItems('Get Closed Issues')\n  .filter((issue) => !issue.pull_request && issue.closed_at && new Date(issue.closed_at) >= sinceDate)\n  .map(compactIssue);\nconst mergedPulls = nodeItems('Get Closed Pulls')\n  .filter((pr) => pr.merged_at && new Date(pr.merged_at) >= sinceDate)\n  .map(compactPull);\n\nconst activity = {\n  repository: config.repository,\n  period: { since: config.since, until: config.until },\n  language: config.language,\n  commits,\n  closedIssues,\n  mergedPulls\n};\n\nconst languageInstruction = config.language === 'FR'\n  ? 'Write the summary in French.'\n  : 'Write the summary in English.';\n\nconst prompt = `You are preparing a weekly engineering update for ${activity.repository}. ${languageInstruction}\\n\\nUse this JSON activity data to write a concise narrative summary with: 1) headline, 2) shipped highlights, 3) issue and PR outcomes, 4) notable contributors, 5) next-week watch items. Avoid inventing details.\\n\\n${JSON.stringify(activity, null, 2)}`;\n\nreturn [{ json: { ...activity, prompt } }];"
+      },
+      "id": "1bde99e1-3269-4bd4-b8ce-bcb47c41d59b",
+      "name": "Build Claude Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1400,
+        320
       ]
     },
     {
@@ -68,21 +174,21 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        720,
-        300
+        1640,
+        320
       ]
     },
     {
       "parameters": {
-        "jsCode": "const content = $json.content || [];\nconst firstText = content.find((part) => part.type === 'text')?.text || 'No summary returned by Claude.';\nconst repository = $('Fetch GitHub Activity').first().json.repository;\nconst since = $('Fetch GitHub Activity').first().json.period.since.slice(0, 10);\nconst until = $('Fetch GitHub Activity').first().json.period.until.slice(0, 10);\nconst message = `**Weekly GitHub Summary: ${repository}**\\n_${since} to ${until}_\\n\\n${firstText}`;\nreturn [{ json: { repository, since, until, message } }];"
+        "jsCode": "const content = $json.content || [];\nconst firstText = content.find((part) => part.type === 'text')?.text || 'No summary returned by Claude.';\nconst activity = $('Build Claude Prompt').first().json;\nconst message = `**Weekly GitHub Summary: ${activity.repository}**\\n_${activity.period.since.slice(0, 10)} to ${activity.period.until.slice(0, 10)}_\\n\\n${firstText}`;\nreturn [{ json: { repository: activity.repository, message } }];"
       },
       "id": "7a725dd6-3a12-4f59-a218-b04832f73d42",
       "name": "Prepare Discord Message",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        960,
-        300
+        1880,
+        320
       ]
     },
     {
@@ -98,8 +204,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1200,
-        300
+        2120,
+        320
       ]
     }
   ],
@@ -109,14 +215,58 @@
       "main": [
         [
           {
-            "node": "Fetch GitHub Activity",
+            "node": "Prepare Config",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Fetch GitHub Activity": {
+    "Prepare Config": {
+      "main": [
+        [
+          {
+            "node": "Get Commits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Commits": {
+      "main": [
+        [
+          {
+            "node": "Get Closed Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Closed Issues": {
+      "main": [
+        [
+          {
+            "node": "Get Closed Pulls",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Closed Pulls": {
+      "main": [
+        [
+          {
+            "node": "Build Claude Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Claude Prompt": {
       "main": [
         [
           {
@@ -154,7 +304,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "5b9442f1-0416-4fdf-8364-59ae4d2a10ea",
+  "versionId": "a913412a-a096-4011-9962-c84e5596fd3c",
   "meta": {
     "templateCredsSetupCompleted": true
   },

@@ -24,10 +24,10 @@ This workflow generates a weekly narrative summary for a GitHub repository with 
 ## What it does
 
 - Runs every Friday at 5pm.
-- Fetches commits, recently closed issues, and recently merged PRs from the GitHub API for the last 7 days.
+- Fetches commits, recently closed issues, and recently merged PRs from the GitHub API for the last 7 days using n8n HTTP Request nodes.
 - Sends those events to `claude-sonnet-4-20250514` with a narrative summary prompt.
 - Posts the final summary to Discord.
 
 ## Validation
 
-The workflow JSON was validated locally with PowerShell JSON parsing. A live n8n execution screenshot still requires real `ANTHROPIC_API_KEY` and Discord webhook values in the target n8n instance.
+The workflow JSON was validated locally with PowerShell JSON parsing. The GitHub API requests are implemented with HTTP Request nodes because n8n Code nodes are for data preparation/transformation, not external HTTP calls. A live n8n execution screenshot still requires real `ANTHROPIC_API_KEY` and Discord webhook values in the target n8n instance.
