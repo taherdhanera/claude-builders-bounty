@@ -55,6 +55,10 @@
             {
               "name": "User-Agent",
               "value": "n8n-weekly-claude-summary"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{$env.GITHUB_TOKEN ? 'Bearer ' + $env.GITHUB_TOKEN : ''}}"
             }
           ]
         },
@@ -86,6 +90,10 @@
             {
               "name": "User-Agent",
               "value": "n8n-weekly-claude-summary"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{$env.GITHUB_TOKEN ? 'Bearer ' + $env.GITHUB_TOKEN : ''}}"
             }
           ]
         },
@@ -117,6 +125,10 @@
             {
               "name": "User-Agent",
               "value": "n8n-weekly-claude-summary"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{$env.GITHUB_TOKEN ? 'Bearer ' + $env.GITHUB_TOKEN : ''}}"
             }
           ]
         },
