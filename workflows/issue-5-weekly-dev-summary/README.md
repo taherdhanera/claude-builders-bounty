@@ -30,4 +30,10 @@ This workflow generates a weekly narrative summary for a GitHub repository with 
 
 ## Validation
 
-The workflow JSON was validated locally with PowerShell JSON parsing. The GitHub API requests are implemented with HTTP Request nodes because n8n Code nodes are for data preparation/transformation, not external HTTP calls. A live n8n execution screenshot still requires real `ANTHROPIC_API_KEY` and Discord webhook values in the target n8n instance.
+The workflow JSON was validated locally with:
+
+```bash
+python workflows/issue-5-weekly-dev-summary/validate_workflow.py
+```
+
+Expected output is documented in `VERIFICATION.md`. The GitHub API requests are implemented with HTTP Request nodes because n8n Code nodes are for data preparation/transformation, not external HTTP calls. A live n8n execution screenshot still requires real `ANTHROPIC_API_KEY` and Discord webhook values in the target n8n instance.
