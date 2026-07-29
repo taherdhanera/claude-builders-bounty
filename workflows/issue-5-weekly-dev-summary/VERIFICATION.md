@@ -44,6 +44,11 @@ HTTP 200
 This confirms that n8n accepts and persists the exported workflow. It does not
 claim that the credential-dependent Anthropic and Discord requests completed.
 
+![Verified local n8n import and runtime health](n8n-import-verification.png)
+
+The visual above is a presentation of the same verified local import and health
+output. It is not a credential-dependent successful-execution screenshot.
+
 ## Live execution boundary
 
 The workflow needs real `ANTHROPIC_API_KEY` and `WEEKLY_SUMMARY_DISCORD_WEBHOOK_URL` values to produce a live n8n execution screenshot. I did not fabricate that artifact from this environment.
