@@ -22,6 +22,28 @@ model=claude-sonnet-4-20250514
 
 The validator checks the exported workflow shape, Friday 5pm schedule, GitHub commits/issues/pulls fetches, Claude Messages API model, Discord webhook delivery, EN/FR language configuration, and five-step README constraint.
 
+## Real n8n import verification
+
+The exact workflow JSON from this branch was imported into a clean local n8n
+`2.32.6` instance on Windows:
+
+```text
+Importing 1 workflows...
+Successfully imported 1 workflow.
+weekly-github-claude-summary|Weekly GitHub Activity Summary with Claude
+```
+
+After the import, the n8n instance started successfully and its health endpoint
+returned:
+
+```text
+HTTP 200
+{"status":"ok"}
+```
+
+This confirms that n8n accepts and persists the exported workflow. It does not
+claim that the credential-dependent Anthropic and Discord requests completed.
+
 ## Live execution boundary
 
 The workflow needs real `ANTHROPIC_API_KEY` and `WEEKLY_SUMMARY_DISCORD_WEBHOOK_URL` values to produce a live n8n execution screenshot. I did not fabricate that artifact from this environment.
