@@ -192,7 +192,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const content = $json.content || [];\nconst firstText = content.find((part) => part.type === 'text')?.text || 'No summary returned by Claude.';\nconst activity = $('Build Claude Prompt').first().json;\nconst message = `**Weekly GitHub Summary: ${activity.repository}**\\n_${activity.period.since.slice(0, 10)} to ${activity.period.until.slice(0, 10)}_\\n\\n${firstText}`;\nreturn [{ json: { repository: activity.repository, message } }];"
+        "jsCode": "const content = $json.content || [];\nconst firstText = content.find((part) => part.type === 'text')?.text || 'No summary returned by Claude.';\nconst activity = $('Build Claude Prompt').first().json;\nconst header = `**Weekly GitHub Summary: ${activity.repository}**\\n_${activity.period.since.slice(0, 10)} to ${activity.period.until.slice(0, 10)}_\\n\\n`;\nconst suffix = '\\n\\n_Trimmed to fit Discord._';\nconst maxLength = 1900;\nconst available = maxLength - header.length;\nconst summary = firstText.length > available ? `${firstText.slice(0, available - suffix.length)}${suffix}` : firstText;\nconst message = `${header}${summary}`;\nreturn [{ json: { repository: activity.repository, message } }];"
       },
       "id": "7a725dd6-3a12-4f59-a218-b04832f73d42",
       "name": "Prepare Discord Message",

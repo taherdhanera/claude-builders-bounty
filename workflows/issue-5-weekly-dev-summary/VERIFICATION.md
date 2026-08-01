@@ -22,6 +22,16 @@ model=claude-sonnet-4-20250514
 
 The validator checks the exported workflow shape, Friday 5pm schedule, GitHub commits/issues/pulls fetches, Claude Messages API model, Discord webhook delivery, EN/FR language configuration, and five-step README constraint.
 
+Run the deterministic transformation and delivery-boundary smoke test with:
+
+```bash
+python workflows/issue-5-weekly-dev-summary/smoke_greenfield.py
+```
+
+It verifies representative commit, issue, and merged-PR data; EN/FR configuration; prompt construction; and the 1,900-character Discord delivery boundary without external credentials.
+
+GitHub Actions runs both checks on every relevant push and pull request.
+
 ## Real n8n import verification
 
 The exact workflow JSON from this branch was imported into a clean local n8n

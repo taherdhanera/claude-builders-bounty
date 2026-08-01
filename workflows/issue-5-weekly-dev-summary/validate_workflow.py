@@ -67,12 +67,23 @@ def main() -> None:
     require("ANTHROPIC_API_KEY" in workflow_text, "Anthropic API key env var is missing")
     require("GITHUB_REPO_OWNER" in workflow_text, "GitHub owner env var is missing")
     require("GITHUB_REPO_NAME" in workflow_text, "GitHub repo env var is missing")
+    require("GITHUB_TOKEN" in workflow_text, "GitHub token env var is missing")
     require("SUMMARY_LANGUAGE" in workflow_text, "language env var is missing")
     require("WEEKLY_SUMMARY_DISCORD_WEBHOOK_URL" in workflow_text, "Discord webhook env var is missing")
     require("/commits?" in workflow_text, "commits API fetch is missing")
     require("/issues?state=closed" in workflow_text, "closed issues API fetch is missing")
     require("/pulls?state=closed" in workflow_text, "closed pulls API fetch is missing")
     require("mergedPulls" in workflow_text, "merged PR filtering/output is missing")
+    require("maxLength = 1900" in workflow_text, "Discord message length guard is missing")
+    require("N8N_BLOCK_ENV_ACCESS_IN_NODE=false" in readme, "n8n env access setup is missing")
+
+    forbidden_secret_patterns = (
+        r"sk-ant-[A-Za-z0-9_-]{12,}",
+        r"ghp_[A-Za-z0-9]{20,}",
+        r"discord(?:app)?\.com/api/webhooks/\d+/[A-Za-z0-9_-]+",
+    )
+    for pattern in forbidden_secret_patterns:
+        require(not re.search(pattern, workflow_text + readme, re.IGNORECASE), "real secret-like value detected")
 
     connections = workflow["connections"]
     expected_edges = [

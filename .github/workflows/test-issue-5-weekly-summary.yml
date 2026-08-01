@@ -1,0 +1,35 @@
+name: Test issue 5 weekly summary
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/test-issue-5-weekly-summary.yml"
+      - "workflows/issue-5-weekly-dev-summary/**"
+  push:
+    paths:
+      - ".github/workflows/test-issue-5-weekly-summary.yml"
+      - "workflows/issue-5-weekly-dev-summary/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate workflow export
+        run: python workflows/issue-5-weekly-dev-summary/validate_workflow.py
+
+      - name: Run deterministic smoke test
+        run: python workflows/issue-5-weekly-dev-summary/smoke_greenfield.py
+
+      - name: Check whitespace
+        run: git diff --check
