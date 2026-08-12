@@ -5,7 +5,7 @@ This workflow generates a weekly narrative summary for a GitHub repository with 
 ## Setup
 
 1. Import `weekly-github-claude-summary.workflow.json` into n8n.
-2. Set `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`, restart n8n, then set `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME`, `GITHUB_TOKEN`, `ANTHROPIC_API_KEY`, `WEEKLY_SUMMARY_DISCORD_WEBHOOK_URL`, and optional `SUMMARY_LANGUAGE` (`EN` or `FR`).
+2. Set `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`, restart n8n, then set `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME`, `ANTHROPIC_API_KEY`, `WEEKLY_SUMMARY_DISCORD_WEBHOOK_URL`, and optional `GITHUB_TOKEN` and `SUMMARY_LANGUAGE` (`EN` or `FR`).
 3. Open the workflow, confirm the Friday 5pm schedule, and activate it.
 4. Run the workflow manually once from the Schedule Trigger node.
 5. Confirm Discord receives the summary, then leave the workflow active for weekly runs.
@@ -19,12 +19,13 @@ This workflow generates a weekly narrative summary for a GitHub repository with 
 | `ANTHROPIC_API_KEY` | Yes | `sk-ant-...` | Claude API key used by the Anthropic Messages API. |
 | `WEEKLY_SUMMARY_DISCORD_WEBHOOK_URL` | Yes | `https://discord.com/api/webhooks/...` | Discord webhook destination. |
 | `SUMMARY_LANGUAGE` | No | `EN` or `FR` | Summary language. Defaults to `EN`. |
-| `GITHUB_TOKEN` | Yes | `ghp_...` | Authenticates GitHub API requests and enables private repo access. |
+| `GITHUB_TOKEN` | No | `ghp_...` | Recommended for private repositories and higher GitHub API rate limits. |
 
 ## What it does
 
 - Runs every Friday at 5pm.
 - Fetches commits, recently closed issues, and recently merged PRs from the GitHub API for the last 7 days using n8n HTTP Request nodes.
+- Makes one request per GitHub endpoint and still produces a summary for a quiet week with no matching activity.
 - Sends those events to `claude-sonnet-4-20250514` with a narrative summary prompt.
 - Posts the final summary to Discord.
 - Trims unusually long Claude output before delivery so the Discord webhook stays below its message-size limit.

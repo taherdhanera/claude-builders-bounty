@@ -56,6 +56,15 @@ def main() -> None:
         node = node_by_name(workflow, name)
         require(node.get("type") == expected_type, f"{name} type should be {expected_type}")
 
+    github_fetch_nodes = ("Get Commits", "Get Closed Issues", "Get Closed Pulls")
+    for name in github_fetch_nodes:
+        node = node_by_name(workflow, name)
+        require(node.get("executeOnce") is True, f"{name} must make exactly one request")
+        require(node.get("alwaysOutputData") is True, f"{name} must continue on an empty activity array")
+
+    for name in ("Generate Claude Summary", "Send Discord Summary"):
+        require(node_by_name(workflow, name).get("executeOnce") is True, f"{name} must execute once")
+
     schedule = node_by_name(workflow, "Weekly Friday 5pm")["parameters"]["rule"]["interval"][0]
     require(schedule.get("field") == "weeks", "trigger must run weekly")
     require(schedule.get("triggerAtDay") == [5], "trigger must run on Friday")
@@ -76,6 +85,11 @@ def main() -> None:
     require("mergedPulls" in workflow_text, "merged PR filtering/output is missing")
     require("maxLength = 1900" in workflow_text, "Discord message length guard is missing")
     require("N8N_BLOCK_ENV_ACCESS_IN_NODE=false" in readme, "n8n env access setup is missing")
+
+    build_code = node_by_name(workflow, "Build Claude Prompt")["parameters"]["jsCode"]
+    require("commit?.sha && commit.commit" in build_code, "empty commit placeholders are not filtered")
+    require("issue?.number" in build_code, "empty issue placeholders are not filtered")
+    require("pr?.number" in build_code, "empty pull-request placeholders are not filtered")
 
     forbidden_secret_patterns = (
         r"sk-ant-[A-Za-z0-9_-]{12,}",

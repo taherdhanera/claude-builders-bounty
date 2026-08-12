@@ -68,6 +68,8 @@
       "name": "Get Commits",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "executeOnce": true,
+      "alwaysOutputData": true,
       "position": [
         680,
         320
@@ -103,6 +105,8 @@
       "name": "Get Closed Issues",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "executeOnce": true,
+      "alwaysOutputData": true,
       "position": [
         920,
         320
@@ -138,6 +142,8 @@
       "name": "Get Closed Pulls",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "executeOnce": true,
+      "alwaysOutputData": true,
       "position": [
         1160,
         320
@@ -145,7 +151,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const config = $('Prepare Config').first().json;\nconst sinceDate = new Date(config.since);\n\nfunction nodeItems(nodeName) {\n  const values = $(nodeName).all().map((item) => item.json);\n  if (values.length === 1 && Array.isArray(values[0])) {\n    return values[0];\n  }\n  return values;\n}\n\nfunction compactCommit(commit) {\n  return {\n    sha: (commit.sha || '').slice(0, 7),\n    author: commit.commit?.author?.name || commit.author?.login || 'unknown',\n    date: commit.commit?.author?.date,\n    message: (commit.commit?.message || '').split('\\n')[0],\n    url: commit.html_url\n  };\n}\n\nfunction compactIssue(issue) {\n  return {\n    number: issue.number,\n    title: issue.title,\n    author: issue.user?.login || 'unknown',\n    closedAt: issue.closed_at,\n    url: issue.html_url\n  };\n}\n\nfunction compactPull(pr) {\n  return {\n    number: pr.number,\n    title: pr.title,\n    author: pr.user?.login || 'unknown',\n    mergedAt: pr.merged_at,\n    url: pr.html_url\n  };\n}\n\nconst commits = nodeItems('Get Commits').map(compactCommit);\nconst closedIssues = nodeItems('Get Closed Issues')\n  .filter((issue) => !issue.pull_request && issue.closed_at && new Date(issue.closed_at) >= sinceDate)\n  .map(compactIssue);\nconst mergedPulls = nodeItems('Get Closed Pulls')\n  .filter((pr) => pr.merged_at && new Date(pr.merged_at) >= sinceDate)\n  .map(compactPull);\n\nconst activity = {\n  repository: config.repository,\n  period: { since: config.since, until: config.until },\n  language: config.language,\n  commits,\n  closedIssues,\n  mergedPulls\n};\n\nconst languageInstruction = config.language === 'FR'\n  ? 'Write the summary in French.'\n  : 'Write the summary in English.';\n\nconst prompt = `You are preparing a weekly engineering update for ${activity.repository}. ${languageInstruction}\\n\\nUse this JSON activity data to write a concise narrative summary with: 1) headline, 2) shipped highlights, 3) issue and PR outcomes, 4) notable contributors, 5) next-week watch items. Avoid inventing details.\\n\\n${JSON.stringify(activity, null, 2)}`;\n\nreturn [{ json: { ...activity, prompt } }];"
+        "jsCode": "const config = $('Prepare Config').first().json;\nconst sinceDate = new Date(config.since);\n\nfunction nodeItems(nodeName) {\n  const values = $(nodeName).all().map((item) => item.json);\n  if (values.length === 1 && Array.isArray(values[0])) {\n    return values[0];\n  }\n  return values;\n}\n\nfunction compactCommit(commit) {\n  return {\n    sha: (commit.sha || '').slice(0, 7),\n    author: commit.commit?.author?.name || commit.author?.login || 'unknown',\n    date: commit.commit?.author?.date,\n    message: (commit.commit?.message || '').split('\\n')[0],\n    url: commit.html_url\n  };\n}\n\nfunction compactIssue(issue) {\n  return {\n    number: issue.number,\n    title: issue.title,\n    author: issue.user?.login || 'unknown',\n    closedAt: issue.closed_at,\n    url: issue.html_url\n  };\n}\n\nfunction compactPull(pr) {\n  return {\n    number: pr.number,\n    title: pr.title,\n    author: pr.user?.login || 'unknown',\n    mergedAt: pr.merged_at,\n    url: pr.html_url\n  };\n}\n\nconst commits = nodeItems('Get Commits')\n  .filter((commit) => commit?.sha && commit.commit)\n  .map(compactCommit);\nconst closedIssues = nodeItems('Get Closed Issues')\n  .filter((issue) => issue?.number && !issue.pull_request && issue.closed_at && new Date(issue.closed_at) >= sinceDate)\n  .map(compactIssue);\nconst mergedPulls = nodeItems('Get Closed Pulls')\n  .filter((pr) => pr?.number && pr.merged_at && new Date(pr.merged_at) >= sinceDate)\n  .map(compactPull);\n\nconst activity = {\n  repository: config.repository,\n  period: { since: config.since, until: config.until },\n  language: config.language,\n  commits,\n  closedIssues,\n  mergedPulls\n};\n\nconst languageInstruction = config.language === 'FR'\n  ? 'Write the summary in French.'\n  : 'Write the summary in English.';\n\nconst prompt = `You are preparing a weekly engineering update for ${activity.repository}. ${languageInstruction}\\n\\nUse this JSON activity data to write a concise narrative summary with: 1) headline, 2) shipped highlights, 3) issue and PR outcomes, 4) notable contributors, 5) next-week watch items. Avoid inventing details.\\n\\n${JSON.stringify(activity, null, 2)}`;\n\nreturn [{ json: { ...activity, prompt } }];"
       },
       "id": "1bde99e1-3269-4bd4-b8ce-bcb47c41d59b",
       "name": "Build Claude Prompt",
@@ -185,6 +191,7 @@
       "name": "Generate Claude Summary",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "executeOnce": true,
       "position": [
         1640,
         320
@@ -215,6 +222,7 @@
       "name": "Send Discord Summary",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
+      "executeOnce": true,
       "position": [
         2120,
         320

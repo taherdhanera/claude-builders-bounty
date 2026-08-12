@@ -43,6 +43,16 @@ def main() -> None:
     require("config.language === 'FR'" in build_code, "French language branch is missing")
     require("maxLength = 1900" in delivery_code, "Discord length guard is missing")
     require("Trimmed to fit Discord" in delivery_code, "Discord truncation disclosure is missing")
+    require("commit?.sha && commit.commit" in build_code, "quiet-week commit placeholder guard is missing")
+    require("issue?.number" in build_code, "quiet-week issue placeholder guard is missing")
+    require("pr?.number" in build_code, "quiet-week pull placeholder guard is missing")
+
+    for name in ("Get Commits", "Get Closed Issues", "Get Closed Pulls"):
+        require(node(name).get("executeOnce") is True, f"{name} can fan out duplicate requests")
+        require(node(name).get("alwaysOutputData") is True, f"{name} can stop a quiet-week execution")
+
+    for name in ("Generate Claude Summary", "Send Discord Summary"):
+        require(node(name).get("executeOnce") is True, f"{name} can execute more than once")
 
     header = "**Weekly GitHub Summary: acme/greenfield-saas**\n_2026-07-24 to 2026-07-31_\n\n"
     suffix = "\n\n_Trimmed to fit Discord._"
