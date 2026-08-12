@@ -50,6 +50,15 @@ def main() -> None:
     for name in ("Get Commits", "Get Closed Issues", "Get Closed Pulls"):
         require(node(name).get("executeOnce") is True, f"{name} can fan out duplicate requests")
         require(node(name).get("alwaysOutputData") is True, f"{name} can stop a quiet-week execution")
+        require(node(name).get("retryOnFail") is True, f"{name} does not retry a transient fetch failure")
+        require(node(name).get("maxTries") == 3, f"{name} retries are not bounded to three attempts")
+        require(node(name).get("onError") is None, f"{name} can silently continue after fetch failure")
+        pagination = node(name)["parameters"]["options"]["pagination"]["pagination"]
+        require(pagination.get("maxRequests") == 10, f"{name} pagination is not bounded")
+        require(
+            "$response.body.length < 100" in pagination.get("completeExpression", ""),
+            f"{name} cannot detect the final GitHub page",
+        )
 
     for name in ("Generate Claude Summary", "Send Discord Summary"):
         require(node(name).get("executeOnce") is True, f"{name} can execute more than once")
@@ -65,6 +74,7 @@ def main() -> None:
     print("fixtures=commits,closed-issues,merged-prs")
     print("languages=EN,FR")
     print("discord-max=1900")
+    print("github-fetch=paginated-fail-loud")
 
 
 if __name__ == "__main__":

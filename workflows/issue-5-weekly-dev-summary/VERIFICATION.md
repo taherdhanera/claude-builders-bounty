@@ -18,9 +18,10 @@ nodes=9
 connections=8
 delivery=discord
 model=claude-sonnet-4-20250514
+github-fetch=paginated-fail-loud
 ```
 
-The validator checks the exported workflow shape, Friday 5pm schedule, one-request-per-endpoint execution guards, quiet-week continuation, GitHub commits/issues/pulls fetches, Claude Messages API model, Discord webhook delivery, EN/FR language configuration, and five-step README constraint.
+The validator checks the exported workflow shape, Friday 5pm schedule, one-execution-per-endpoint guards, bounded GitHub pagination, fail-loud retry behavior, quiet-week continuation, GitHub commits/issues/pulls fetches, Claude Messages API model, Discord webhook delivery, EN/FR language configuration, and five-step README constraint.
 
 Run the deterministic transformation and delivery-boundary smoke test with:
 
@@ -28,7 +29,7 @@ Run the deterministic transformation and delivery-boundary smoke test with:
 python workflows/issue-5-weekly-dev-summary/smoke_greenfield.py
 ```
 
-It verifies representative commit, issue, and merged-PR data; EN/FR configuration; prompt construction; one-request execution guards; quiet-week placeholder filtering; and the 1,900-character Discord delivery boundary without external credentials.
+It verifies representative commit, issue, and merged-PR data; EN/FR configuration; prompt construction; bounded paginated fetches; fail-loud retry guards; quiet-week placeholder filtering; and the 1,900-character Discord delivery boundary without external credentials.
 
 GitHub Actions runs both checks on every relevant push and pull request.
 

@@ -59,8 +59,33 @@ def main() -> None:
     github_fetch_nodes = ("Get Commits", "Get Closed Issues", "Get Closed Pulls")
     for name in github_fetch_nodes:
         node = node_by_name(workflow, name)
-        require(node.get("executeOnce") is True, f"{name} must make exactly one request")
+        require(node.get("executeOnce") is True, f"{name} must execute once per workflow run")
         require(node.get("alwaysOutputData") is True, f"{name} must continue on an empty activity array")
+        require(node.get("retryOnFail") is True, f"{name} must retry transient failures")
+        require(node.get("maxTries") == 3, f"{name} must use three bounded attempts")
+        require(node.get("onError") is None, f"{name} must fail the workflow after retries")
+        response = node["parameters"]["options"].get("response", {}).get("response", {})
+        require(response.get("neverError") is not True, f"{name} must fail on non-2xx responses")
+        pagination = node["parameters"]["options"]["pagination"]["pagination"]
+        require(
+            pagination.get("paginationMode") == "updateAParameterInEachRequest",
+            f"{name} must use explicit page pagination",
+        )
+        page_parameters = pagination["parameters"]["parameters"]
+        require(
+            any(
+                parameter.get("type") == "qs"
+                and parameter.get("name") == "page"
+                and "$pageCount + 1" in parameter.get("value", "")
+                for parameter in page_parameters
+            ),
+            f"{name} must increment the GitHub page parameter",
+        )
+        require(
+            "$response.body.length < 100" in pagination.get("completeExpression", ""),
+            f"{name} must stop after the final short GitHub page",
+        )
+        require(pagination.get("maxRequests") == 10, f"{name} must bound pagination")
 
     for name in ("Generate Claude Summary", "Send Discord Summary"):
         require(node_by_name(workflow, name).get("executeOnce") is True, f"{name} must execute once")
@@ -122,6 +147,7 @@ def main() -> None:
     print(f"connections={len(workflow['connections'])}")
     print("delivery=discord")
     print("model=claude-sonnet-4-20250514")
+    print("github-fetch=paginated-fail-loud")
 
 
 if __name__ == "__main__":

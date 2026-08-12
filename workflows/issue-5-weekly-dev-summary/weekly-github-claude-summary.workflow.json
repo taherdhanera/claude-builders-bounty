@@ -62,7 +62,27 @@
             }
           ]
         },
-        "options": {}
+        "options": {
+          "pagination": {
+            "pagination": {
+              "paginationMode": "updateAParameterInEachRequest",
+              "parameters": {
+                "parameters": [
+                  {
+                    "type": "qs",
+                    "name": "page",
+                    "value": "={{ $pageCount + 1 }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ $response.body.length < 100 }}",
+              "limitPagesFetched": true,
+              "maxRequests": 10,
+              "requestInterval": 250
+            }
+          }
+        }
       },
       "id": "97303380-384e-46f3-a157-58d90e6da98d",
       "name": "Get Commits",
@@ -70,6 +90,9 @@
       "typeVersion": 4.2,
       "executeOnce": true,
       "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
       "position": [
         680,
         320
@@ -99,7 +122,27 @@
             }
           ]
         },
-        "options": {}
+        "options": {
+          "pagination": {
+            "pagination": {
+              "paginationMode": "updateAParameterInEachRequest",
+              "parameters": {
+                "parameters": [
+                  {
+                    "type": "qs",
+                    "name": "page",
+                    "value": "={{ $pageCount + 1 }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ $response.body.length < 100 }}",
+              "limitPagesFetched": true,
+              "maxRequests": 10,
+              "requestInterval": 250
+            }
+          }
+        }
       },
       "id": "70633d90-0722-41bc-8462-ccba360bb8ab",
       "name": "Get Closed Issues",
@@ -107,6 +150,9 @@
       "typeVersion": 4.2,
       "executeOnce": true,
       "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
       "position": [
         920,
         320
@@ -136,7 +182,27 @@
             }
           ]
         },
-        "options": {}
+        "options": {
+          "pagination": {
+            "pagination": {
+              "paginationMode": "updateAParameterInEachRequest",
+              "parameters": {
+                "parameters": [
+                  {
+                    "type": "qs",
+                    "name": "page",
+                    "value": "={{ $pageCount + 1 }}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ $response.body.length < 100 }}",
+              "limitPagesFetched": true,
+              "maxRequests": 10,
+              "requestInterval": 250
+            }
+          }
+        }
       },
       "id": "014b75de-10aa-41e7-9bb8-4f4f7df9197d",
       "name": "Get Closed Pulls",
@@ -144,6 +210,9 @@
       "typeVersion": 4.2,
       "executeOnce": true,
       "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
       "position": [
         1160,
         320
