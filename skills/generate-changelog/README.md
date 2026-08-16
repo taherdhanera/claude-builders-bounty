@@ -12,6 +12,8 @@ Bounty submission for [issue #1](https://github.com/claude-builders-bounty/claud
 
 Sample output generated from this repository: [`samples/CHANGELOG.sample.md`](samples/CHANGELOG.sample.md).
 
+The generator fails closed when the repository has no commits or `--since` does not resolve to an ancestor of `HEAD`, preventing misleading empty release output.
+
 ## Claude Code
 
 Copy this folder to `.claude/skills/generate-changelog/` to enable the `/generate-changelog` command.

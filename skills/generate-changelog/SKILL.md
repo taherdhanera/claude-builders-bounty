@@ -29,9 +29,10 @@ bash skills/generate-changelog/changelog.sh
 ## Behavior
 
 1. Detects the latest git tag (or uses `--since`)
-2. Collects commits after that tag
-3. Categorizes conventional commits into **Breaking**, **Added**, **Fixed**, **Changed**, and **Removed**
-4. Writes a Keep a Changelog-style `CHANGELOG.md`
+2. Validates that the repository has commits and the selected tag resolves to an ancestor of `HEAD`
+3. Collects commits after that tag
+4. Categorizes conventional commits into **Breaking**, **Added**, **Fixed**, **Changed**, and **Removed**
+5. Writes a Keep a Changelog-style `CHANGELOG.md`
 
 ## Classification
 

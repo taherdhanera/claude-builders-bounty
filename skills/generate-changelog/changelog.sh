@@ -72,11 +72,24 @@ if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! git rev-parse --verify 'HEAD^{commit}' >/dev/null 2>&1; then
+  echo "Error: repository has no commits" >&2
+  exit 1
+fi
+
 if [[ -z "$SINCE_TAG" ]]; then
   SINCE_TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
 fi
 
 if [[ -n "$SINCE_TAG" ]]; then
+  if ! git rev-parse --verify "${SINCE_TAG}^{commit}" >/dev/null 2>&1; then
+    echo "Error: --since does not resolve to a commit: ${SINCE_TAG}" >&2
+    exit 1
+  fi
+  if ! git merge-base --is-ancestor "$SINCE_TAG" HEAD; then
+    echo "Error: --since is not an ancestor of HEAD: ${SINCE_TAG}" >&2
+    exit 1
+  fi
   RANGE="${SINCE_TAG}..HEAD"
   VERSION="${VERSION_OVERRIDE:-${SINCE_TAG}-next}"
   [[ "$PREVIEW" -eq 0 ]] && echo "Generating changelog since ${SINCE_TAG}" >&2

@@ -34,6 +34,21 @@ assert_not_contains() {
   fi
 }
 
+assert_command_fails() {
+  local label="$1"
+  shift
+  set +e
+  "$@" >/dev/null 2>&1
+  local status=$?
+  set -e
+  if [[ "$status" -ne 0 ]]; then
+    PASS=$((PASS + 1))
+  else
+    echo "FAIL: ${label} — command should exit non-zero" >&2
+    FAIL=$((FAIL + 1))
+  fi
+}
+
 setup_repo() {
   local dir="$1"
   mkdir -p "$dir"
@@ -301,6 +316,32 @@ OUT10="${TMP_ROOT}/changelog10.md"
 bash "$CHANGELOG_SH" "$REPO10" --output "$OUT10" >/dev/null
 assert_contains "$OUT10" "## [v1.0.0-next]" "empty release keeps version header"
 assert_not_contains "$OUT10" "### Added" "empty release omits empty sections"
+
+# Test 14: invalid --since refs fail instead of emitting an empty changelog
+INVALID_OUT="${TMP_ROOT}/invalid-since.md"
+assert_command_fails \
+  "invalid since ref fails closed" \
+  bash "$CHANGELOG_SH" "$REPO1" --since does-not-exist --output "$INVALID_OUT"
+if [[ ! -e "$INVALID_OUT" ]]; then
+  PASS=$((PASS + 1))
+else
+  echo "FAIL: invalid since ref should not create output" >&2
+  FAIL=$((FAIL + 1))
+fi
+
+# Test 15: repositories without commits fail instead of looking complete
+EMPTY_REPO="${TMP_ROOT}/empty-repo"
+setup_repo "$EMPTY_REPO"
+EMPTY_OUT="${TMP_ROOT}/empty.md"
+assert_command_fails \
+  "empty repository fails closed" \
+  bash "$CHANGELOG_SH" "$EMPTY_REPO" --output "$EMPTY_OUT"
+if [[ ! -e "$EMPTY_OUT" ]]; then
+  PASS=$((PASS + 1))
+else
+  echo "FAIL: empty repository should not create output" >&2
+  FAIL=$((FAIL + 1))
+fi
 
 echo "Tests: ${PASS} passed, ${FAIL} failed"
 [[ "$FAIL" -eq 0 ]]
