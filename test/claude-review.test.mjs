@@ -139,3 +139,13 @@ test("bundled real PR samples include required review sections", async () => {
     assert.match(markdown, /## Confidence: (Low|Medium|High)/);
   }
 });
+
+test("write-enabled workflow executes only trusted base code", async () => {
+  const workflow = await readFile(".github/workflows/claude-review.yml", "utf8");
+
+  assert.match(workflow, /^\s*pull_request_target:/m);
+  assert.match(workflow, /ref:\s*\$\{\{\s*github\.event\.repository\.default_branch\s*\}\}/);
+  assert.match(workflow, /persist-credentials:\s*false/);
+  assert.doesNotMatch(workflow, /github\.event\.pull_request\.(head|merge_commit_sha)/);
+  assert.doesNotMatch(workflow, /^\s*pull_request:\s*$/m);
+});

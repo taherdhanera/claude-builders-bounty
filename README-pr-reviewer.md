@@ -51,7 +51,9 @@ The confidence score is based on diff size, affected file types, test-file signa
 
 ## GitHub Action
 
-The workflow in `.github/workflows/claude-review.yml` runs on pull request events, writes the review to the job summary, and posts it as a PR comment.
+The workflow in `.github/workflows/claude-review.yml` runs on `pull_request_target` events, writes the review to the job summary, and posts or updates a PR comment.
+
+For safety, the write-enabled job checks out only the repository's trusted default branch with credential persistence disabled. Pull-request code is never checked out or executed; the CLI reads the untrusted PR diff as GitHub API data.
 
 Required permission:
 
