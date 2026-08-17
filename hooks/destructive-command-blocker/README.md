@@ -27,14 +27,14 @@ Blocked attempts are logged to `~/.claude/hooks/blocked.log` with:
 - project path
 - block reason
 
-Normal Bash commands and non-Bash tool calls exit successfully without logging.
+The hook uses Node's JSON parser (available with Claude Code) so escaped quotes, backslashes, and command newlines cannot bypass inspection. Normal Bash commands and non-Bash tool calls exit successfully without logging.
 The SQL checks are scoped to SQL execution contexts or bare SQL statements so harmless commands such as `grep "DROP TABLE" docs` and Unix `truncate -s 0 file` are allowed.
 
 ## Claude Code Hook Format
 
 The installer writes this hook into `~/.claude/settings.json`:
 
-If that file already exists, the installer first creates `~/.claude/settings.json.bak`.
+If that file already exists, the installer first creates `~/.claude/settings.json.bak`, then preserves its settings and other hooks while adding this hook idempotently.
 
 ```json
 {

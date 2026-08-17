@@ -7,29 +7,40 @@ if [[ -z "${payload//[[:space:]]/}" ]]; then
   exit 0
 fi
 
-compact_payload="$(printf '%s' "$payload" | tr '\n' ' ')"
+mapfile -d '' -t parsed_fields < <(
+  printf '%s' "$payload" | node -e '
+    let input = "";
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("data", (chunk) => { input += chunk; });
+    process.stdin.on("end", () => {
+      try {
+        const data = JSON.parse(input);
+        const values = [
+          data?.tool_name ?? "",
+          data?.tool_input?.command ?? data?.command ?? "",
+          data?.tool_input?.cwd ?? data?.cwd ?? data?.project_path ?? "",
+        ];
+        for (const value of values) {
+          process.stdout.write((typeof value === "string" ? value : "") + "\0");
+        }
+      } catch {
+        process.exitCode = 2;
+      }
+    });
+  '
+)
 
-extract_json_string() {
-  local key="$1"
-  printf '%s' "$compact_payload" |
-    sed -nE "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"((\\\\.|[^\"\\\\])*)\".*/\\1/p" |
-    sed -E 's/\\"/"/g; s/\\\\/\\/g'
-}
-
-tool_name="$(extract_json_string tool_name)"
+tool_name="${parsed_fields[0]:-}"
 if [[ -n "$tool_name" && "$tool_name" != "Bash" ]]; then
   exit 0
 fi
 
-command="$(extract_json_string command)"
+command="${parsed_fields[1]:-}"
 if [[ -z "$command" ]]; then
   exit 0
 fi
 
-project_path="$(extract_json_string cwd)"
-if [[ -z "$project_path" ]]; then
-  project_path="$(extract_json_string project_path)"
-fi
+project_path="${parsed_fields[2]:-}"
 if [[ -z "$project_path" ]]; then
   project_path="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 fi

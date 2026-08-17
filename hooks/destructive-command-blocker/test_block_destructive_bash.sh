@@ -40,6 +40,7 @@ expect_allowed() {
 }
 
 expect_blocked "rm -rf /tmp/demo" "rm -rf recursive deletion"
+expect_blocked 'echo safe\nrm -rf /tmp/demo' "rm -rf recursive deletion"
 expect_blocked "git status && rm -fr build" "rm -rf recursive deletion"
 expect_blocked "rm --recursive --force build" "rm -rf recursive deletion"
 expect_blocked "rm -r -f build" "rm -rf recursive deletion"
@@ -64,5 +65,36 @@ expect_allowed "truncate -s 0 notes.txt"
 expect_allowed "grep -R \"DROP TABLE\" docs"
 expect_allowed "git status && npm test"
 expect_allowed "rm -rf /tmp/demo" "Read"
+
+install_home="$tmpdir/install-home"
+mkdir -p "$install_home/.claude"
+cat > "$install_home/.claude/settings.json" <<'JSON'
+{
+  "permissions": { "allow": ["Read"] },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "bash ~/.claude/hooks/existing.sh" }
+        ]
+      }
+    ]
+  }
+}
+JSON
+
+HOME="$install_home" bash "$script_dir/install_settings.sh" >/dev/null
+HOME="$install_home" bash "$script_dir/install_settings.sh" >/dev/null
+node -e '
+  const fs = require("node:fs");
+  const settings = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  if (settings.permissions?.allow?.[0] !== "Read") throw new Error("existing settings were not preserved");
+  const commands = settings.hooks.PreToolUse.flatMap((entry) => entry.hooks || []).map((hook) => hook.command);
+  if (!commands.includes("bash ~/.claude/hooks/existing.sh")) throw new Error("existing hook was not preserved");
+  if (commands.filter((command) => command === "bash ~/.claude/hooks/block_destructive_bash.sh").length !== 1) {
+    throw new Error("blocker hook installation is not idempotent");
+  }
+' "$install_home/.claude/settings.json"
 
 echo "All destructive command blocker tests passed."
