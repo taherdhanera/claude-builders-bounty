@@ -27,6 +27,11 @@ For very large PRs, cap the first pass and then review the omitted files manuall
 node bin/claude-review.mjs --pr https://github.com/owner/repo/pull/123 --max-files 50
 ```
 
+The CLI compares GitHub's reported changed-file count with the files returned by
+the API. If API pagination or `--max-files` leaves any files unanalyzed, the
+review explicitly reports the coverage gap as a risk instead of presenting a
+partial review as complete.
+
 ## Authentication
 
 Public PRs work without a token until GitHub rate limits anonymous requests. For private repos or higher limits, set one of:

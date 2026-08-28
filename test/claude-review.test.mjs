@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import {
+  applyFileLimit,
   analyzePullRequest,
   formatMarkdown,
   parseArgs,
@@ -138,6 +139,65 @@ test("bundled real PR samples include required review sections", async () => {
     assert.match(markdown, /## Improvement Suggestions/);
     assert.match(markdown, /## Confidence: (Low|Medium|High)/);
   }
+});
+
+test("detects extensionless executables from their shebang", () => {
+  const review = analyzePullRequest({
+    ref: {
+      owner: "example",
+      repo: "tools",
+      number: 8,
+      url: "https://github.com/example/tools/pull/8",
+    },
+    pr: {
+      number: 8,
+      title: "Add review CLI",
+      user: { login: "cli-author" },
+    },
+    files: [
+      {
+        filename: "claude-review",
+        additions: 3,
+        deletions: 0,
+        patch: "+#!/usr/bin/env python3\n+import subprocess\n+print('review')",
+      },
+    ],
+  });
+
+  assert.equal(review.stats.codeFiles, 1);
+  assert.match(review.summary[0], /application code/i);
+  assert.match(review.risks.join("\n"), /without matching test files/i);
+});
+
+test("preserves upstream coverage gaps when max-files limits the local pass", () => {
+  const input = {
+    ref: fixture.ref,
+    pr: { ...fixture.pr, truncatedFiles: 7 },
+    files: Array.from({ length: 5 }, (_, index) => ({
+      filename: `src/file-${index}.js`,
+      additions: 1,
+      deletions: 0,
+      patch: "+export default true;",
+    })),
+  };
+
+  const limited = applyFileLimit(input, 2);
+
+  assert.equal(limited.files.length, 2);
+  assert.equal(limited.pr.truncatedFiles, 10);
+  assert.equal(input.files.length, 5);
+  assert.equal(input.pr.truncatedFiles, 7);
+});
+
+test("reports incomplete file coverage as a risk", () => {
+  const review = analyzePullRequest({
+    ...fixture,
+    pr: { ...fixture.pr, truncatedFiles: 3 },
+  });
+
+  assert.match(review.risks.join("\n"), /3 changed files were omitted/i);
+  assert.match(review.summary.join("\n"), /3 additional changed files were not analyzed/i);
+  assert.equal(review.confidence, "Medium");
 });
 
 test("write-enabled workflow executes only trusted base code", async () => {

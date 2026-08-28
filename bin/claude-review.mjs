@@ -136,7 +136,28 @@ async function fetchPullRequest(prUrl, token = process.env.GITHUB_TOKEN || proce
     if (pageFiles.length < 100) break;
   }
 
+  const reportedChangedFiles = Number(pr.changed_files || 0);
+  if (reportedChangedFiles > files.length) {
+    pr.truncatedFiles = reportedChangedFiles - files.length;
+  }
+
   return { ref, pr, files };
+}
+
+export function applyFileLimit(input, maxFiles) {
+  if (!maxFiles || input.files.length <= maxFiles) {
+    return input;
+  }
+
+  const alreadyTruncated = Number(input.pr.truncatedFiles || 0);
+  return {
+    ...input,
+    pr: {
+      ...input.pr,
+      truncatedFiles: alreadyTruncated + input.files.length - maxFiles,
+    },
+    files: input.files.slice(0, maxFiles),
+  };
 }
 
 async function loadFixture(path) {
@@ -164,8 +185,9 @@ function isTestFile(fileName) {
     || /(^|\/)test[-_].*\.(sh|bash|zsh|ps1)$/.test(fileName);
 }
 
-function isCodeFile(fileName) {
-  return /\.(js|jsx|ts|tsx|mjs|cjs|py|go|rs|java|rb|php|cs|sql|sh|bash|zsh|ps1)$/.test(fileName);
+function isCodeFile(fileName, patch = "") {
+  return /\.(js|jsx|ts|tsx|mjs|cjs|py|go|rs|java|rb|php|cs|sql|sh|bash|zsh|ps1)$/.test(fileName)
+    || /^\+#!\s*\/usr\/bin\/(?:env\s+)?(?:node|python\d*|ruby|php|bash|sh|zsh)\b/m.test(patch);
 }
 
 function isDocsFile(fileName) {
@@ -195,7 +217,7 @@ function unique(values) {
 
 function describeFileMix(files) {
   const labels = [];
-  if (files.some((file) => isCodeFile(file.filename))) labels.push("application code");
+  if (files.some((file) => isCodeFile(file.filename, file.patch))) labels.push("application code");
   if (files.some((file) => isTestFile(file.filename))) labels.push("tests");
   if (files.some((file) => isDocsFile(file.filename))) labels.push("documentation");
   if (files.some((file) => isWorkflowFile(file.filename))) labels.push("automation");
@@ -208,7 +230,7 @@ export function analyzePullRequest({ ref, pr, files }) {
   const additions = files.reduce((sum, file) => sum + (file.additions || 0), 0);
   const deletions = files.reduce((sum, file) => sum + (file.deletions || 0), 0);
   const changedFiles = files.length;
-  const codeFiles = files.filter((file) => isCodeFile(file.filename));
+  const codeFiles = files.filter((file) => isCodeFile(file.filename, file.patch));
   const testFiles = files.filter((file) => isTestFile(file.filename));
   const workflowFiles = files.filter((file) => isWorkflowFile(file.filename));
   const migrationFiles = files.filter((file) => isMigrationFile(file.filename));
@@ -362,12 +384,9 @@ async function main() {
       ? await loadFixture(args.fixture)
       : await fetchPullRequest(args.pr);
 
-    if (args["max-files"] && input.files.length > args["max-files"]) {
-      input.pr = { ...input.pr, truncatedFiles: input.files.length - args["max-files"] };
-      input.files = input.files.slice(0, args["max-files"]);
-    }
+    const limitedInput = applyFileLimit(input, args["max-files"]);
 
-    const review = analyzePullRequest(input);
+    const review = analyzePullRequest(limitedInput);
     const output = args.format === "json"
       ? `${JSON.stringify(review, null, 2)}\n`
       : formatMarkdown(review);
