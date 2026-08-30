@@ -204,7 +204,10 @@ test("write-enabled workflow executes only trusted base code", async () => {
   const workflow = await readFile(".github/workflows/claude-review.yml", "utf8");
 
   assert.match(workflow, /^\s*pull_request_target:/m);
-  assert.match(workflow, /ref:\s*\$\{\{\s*github\.event\.repository\.default_branch\s*\}\}/);
+  assert.match(workflow, /ref:\s*\$\{\{\s*github\.event\.pull_request\.base\.sha\s*\}\}/);
+  assert.match(workflow, /actions\/checkout@11bd71901bbe5b1630ceea73d27597364c9af683/);
+  assert.match(workflow, /actions\/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020/);
+  assert.match(workflow, /actions\/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea/);
   assert.match(workflow, /persist-credentials:\s*false/);
   assert.doesNotMatch(workflow, /github\.event\.pull_request\.(head|merge_commit_sha)/);
   assert.doesNotMatch(workflow, /^\s*pull_request:\s*$/m);
