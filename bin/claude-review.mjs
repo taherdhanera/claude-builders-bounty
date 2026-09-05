@@ -230,6 +230,10 @@ export function analyzePullRequest({ ref, pr, files }) {
   const additions = files.reduce((sum, file) => sum + (file.additions || 0), 0);
   const deletions = files.reduce((sum, file) => sum + (file.deletions || 0), 0);
   const changedFiles = files.length;
+  const missingPatches = files.filter((file) =>
+    (Number(file.additions || 0) + Number(file.deletions || 0) > 0)
+    && (typeof file.patch !== "string" || file.patch.trim().length === 0)
+  ).length;
   const codeFiles = files.filter((file) => isCodeFile(file.filename, file.patch));
   const testFiles = files.filter((file) => isTestFile(file.filename));
   const workflowFiles = files.filter((file) => isWorkflowFile(file.filename));
@@ -249,8 +253,13 @@ export function analyzePullRequest({ ref, pr, files }) {
   }
 
   if (truncatedFiles > 0) {
-    risks.push(`${truncatedFiles} changed file${truncatedFiles === 1 ? " was" : "s were"} omitted by the configured file limit.`);
-    suggestions.push("Run again without --max-files before merge or review the omitted files manually.");
+    risks.push(`${truncatedFiles} changed file${truncatedFiles === 1 ? " was" : "s were"} omitted from this review; API coverage or a local file limit may be responsible.`);
+    suggestions.push("Check API file coverage and any --max-files limit; review the omitted files manually before merge.");
+  }
+
+  if (missingPatches > 0) {
+    risks.push(`Patch text is unavailable for ${missingPatches} file${missingPatches === 1 ? "" : "s"} with reported changed lines; metadata alone cannot establish their behavior.`);
+    suggestions.push("Inspect the full diff for files without patch text before relying on this review.");
   }
 
   if (migrationFiles.length > 0) {
@@ -297,7 +306,7 @@ export function analyzePullRequest({ ref, pr, files }) {
   const uniqueRisks = unique(risks);
   const uniqueSuggestions = unique(suggestions);
   const riskScore = uniqueRisks.filter((risk) => !risk.startsWith("No high-risk")).length;
-  const confidence = riskScore >= 4 || changedFiles > 30
+  const confidence = truncatedFiles > 0 || missingPatches > 0 || riskScore >= 4 || changedFiles > 30
     ? "Low"
     : riskScore >= 2 || testFiles.length === 0
       ? "Medium"
@@ -311,7 +320,7 @@ export function analyzePullRequest({ ref, pr, files }) {
       : "No test file was detected in the changed file list, so behavior coverage should be verified explicitly.",
   ];
   if (truncatedFiles > 0) {
-    summary.push(`${truncatedFiles} additional changed file${truncatedFiles === 1 ? " was" : "s were"} not analyzed because --max-files was set.`);
+    summary.push(`${truncatedFiles} additional changed file${truncatedFiles === 1 ? " was" : "s were"} not analyzed; file coverage is incomplete.`);
   }
 
   return {
@@ -325,6 +334,7 @@ export function analyzePullRequest({ ref, pr, files }) {
     },
     stats: {
       changedFiles,
+      missingPatches,
       additions,
       deletions,
       codeFiles: codeFiles.length,

@@ -197,7 +197,7 @@ test("reports incomplete file coverage as a risk", () => {
 
   assert.match(review.risks.join("\n"), /3 changed files were omitted/i);
   assert.match(review.summary.join("\n"), /3 additional changed files were not analyzed/i);
-  assert.equal(review.confidence, "Medium");
+  assert.equal(review.confidence, "Low");
 });
 
 test("write-enabled workflow executes only trusted base code", async () => {
@@ -211,4 +211,35 @@ test("write-enabled workflow executes only trusted base code", async () => {
   assert.match(workflow, /persist-credentials:\s*false/);
   assert.doesNotMatch(workflow, /github\.event\.pull_request\.(head|merge_commit_sha)/);
   assert.doesNotMatch(workflow, /^\s*pull_request:\s*$/m);
+});
+
+test("incomplete file coverage cannot produce high confidence or invent its cause", () => {
+  const review = analyzePullRequest({
+    ...fixture,
+    pr: { ...fixture.pr, truncatedFiles: 1 },
+    files: [fixture.files[1]],
+  });
+  assert.equal(review.confidence, "Low");
+  assert.doesNotMatch(review.summary.join("\n"), /because --max-files was set/);
+  assert.doesNotMatch(review.risks.join("\n"), /omitted by the configured file limit/);
+});
+
+test("missing changed-line patches are disclosed and lower confidence", () => {
+  const review = analyzePullRequest({
+    ...fixture,
+    files: [{ filename: "tests/large.test.js", additions: 20, deletions: 0 }],
+  });
+  assert.equal(review.confidence, "Low");
+  assert.equal(review.stats.missingPatches, 1);
+  assert.match(review.risks.join("\n"), /patch text.*unavailable/i);
+  assert.match(review.suggestions.join("\n"), /full diff/i);
+});
+
+test("metadata-only changes do not falsely report missing changed-line patches", () => {
+  const review = analyzePullRequest({
+    ...fixture,
+    files: [{ filename: "tests/renamed.test.js", status: "renamed", additions: 0, deletions: 0 }],
+  });
+  assert.equal(review.stats.missingPatches, 0);
+  assert.doesNotMatch(review.risks.join("\n"), /patch text.*unavailable/i);
 });

@@ -32,6 +32,11 @@ the API. If API pagination or `--max-files` leaves any files unanalyzed, the
 review explicitly reports the coverage gap as a risk instead of presenting a
 partial review as complete.
 
+Incomplete file coverage or unavailable patch text for files with changed lines
+forces Low confidence. Missing patches are reported separately from omitted files;
+inspect the full diff before relying on the review. Metadata-only changes with
+zero reported changed lines are not treated as missing changed-line patches.
+
 ## Authentication
 
 Public PRs work without a token until GitHub rate limits anonymous requests. For private repos or higher limits, set one of:
