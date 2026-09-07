@@ -55,6 +55,10 @@ reset_hard_pattern='(^|[[:space:];&|])git[[:space:]]+reset[[:space:]]+--hard($|[
 dd_device_pattern='(^|[[:space:];&|])dd[[:space:]][^;&|]*of=/dev/'
 block_device_pattern='(^|[[:space:];&|])(mkfs|wipefs)([.]|[[:space:]])'
 sql_execution_context=false
+# Match a statement at the beginning of a SQL client's quoted command argument,
+# not a quoted string literal inside a SELECT expression.
+quoted_truncate_pattern="(^|[[:space:];&|])(psql|mysql|sqlcmd)[[:space:]][^\"';&|]*(-c|-e|-q|--command|--execute)([[:space:]]+|=)[\"'][[:space:]]*truncate([[:space:];]|$)"
+sqlite_truncate_pattern="(^|[[:space:];&|])sqlite3[[:space:]]+[^[:space:]\"';&|]+[[:space:]]+[\"'][[:space:]]*truncate([[:space:];]|$)"
 if [[ "$lower_command" =~ $sql_runner_pattern ]] || [[ "$lower_command" =~ $bare_sql_pattern ]]; then
   sql_execution_context=true
 fi
@@ -68,7 +72,10 @@ if [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]]+-[[:alnum:]_-]*r[[:
   reason="rm -rf recursive deletion"
 elif [[ "$sql_execution_context" == true && "$lower_command" =~ drop[[:space:]]+table ]]; then
   reason="DROP TABLE statement"
-elif [[ "$sql_execution_context" == true && "$lower_command" =~ (^|[[:space:]\;\&\|])truncate($|[[:space:]\;\&\|]) ]]; then
+elif [[ "$sql_execution_context" == true ]] &&
+     { [[ "$lower_command" =~ (^|[[:space:]\;\&\|])truncate($|[[:space:]\;\&\|]) ]] ||
+       [[ "$lower_command" =~ $quoted_truncate_pattern ]] ||
+       [[ "$lower_command" =~ $sqlite_truncate_pattern ]]; }; then
   reason="TRUNCATE statement"
 elif [[ "$lower_command" =~ git[[:space:]]+push([^;\&\|])*--force([^[:alnum:]_-]|$) ]] ||
      [[ "$lower_command" =~ git[[:space:]]+push([^;\&\|])*--force-with-lease([^[:alnum:]_-]|$) ]] ||
