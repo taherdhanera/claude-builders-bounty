@@ -343,5 +343,28 @@ else
   FAIL=$((FAIL + 1))
 fi
 
+# Unstructured subjects must be visibly reviewable and preserve literal text.
+REPO11="${TMP_ROOT}/repo11"
+setup_repo "$REPO11"
+git -C "$REPO11" commit --allow-empty -qm 'mystery release adjustment'
+git -C "$REPO11" commit --allow-empty -qm 'fix: preserve literal \n and \c markers'
+OUT11="${TMP_ROOT}/changelog11.md"
+bash "$CHANGELOG_SH" "$REPO11" --preview >"$OUT11" 2>/dev/null
+assert_contains "$OUT11" '### Uncategorized' 'unknown commits are flagged'
+assert_contains "$OUT11" 'Review these commits manually' 'manual review guidance'
+assert_contains "$OUT11" 'mystery release adjustment' 'unknown subject retained'
+assert_not_contains "$OUT11" '### Changed' 'unknown commits not silently classified'
+assert_contains "$OUT11" 'preserve literal \n and \c markers' 'backslashes remain literal'
+assert_not_contains "$OUT1" '### Uncategorized' 'recognized commits need no warning'
+
+# A shallow clone must not silently claim complete release history or overwrite output.
+SHALLOW_REPO="${TMP_ROOT}/shallow-repo"
+git clone -q --depth 1 "file://${REPO1}" "$SHALLOW_REPO"
+SHALLOW_OUT="${TMP_ROOT}/shallow.md"
+printf '%s\n' 'manual release notes' >"$SHALLOW_OUT"
+assert_command_fails 'shallow history fails closed' bash "$CHANGELOG_SH" "$SHALLOW_REPO" --output "$SHALLOW_OUT"
+assert_contains "$SHALLOW_OUT" 'manual release notes' 'incomplete history preserves existing output'
+assert_not_contains "$SHALLOW_OUT" '# Changelog' 'incomplete history never produces release output'
+
 echo "Tests: ${PASS} passed, ${FAIL} failed"
 [[ "$FAIL" -eq 0 ]]

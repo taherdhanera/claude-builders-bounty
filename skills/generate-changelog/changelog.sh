@@ -77,6 +77,12 @@ if ! git rev-parse --verify 'HEAD^{commit}' >/dev/null 2>&1; then
   exit 1
 fi
 
+# A shallow clone cannot establish the actual last release boundary.
+if [[ "$(git rev-parse --is-shallow-repository)" == "true" ]]; then
+  echo "Error: shallow history is incomplete; fetch full history and tags before generating a changelog" >&2
+  exit 1
+fi
+
 if [[ -z "$SINCE_TAG" ]]; then
   SINCE_TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
 fi
@@ -106,6 +112,7 @@ declare -A SECTIONS=(
   [Changed]=""
   [Removed]=""
   [Breaking]=""
+  [Uncategorized]=""
 )
 
 commit_type() {
@@ -136,7 +143,8 @@ categorize() {
     feat|feature|add|implement|create|new) printf 'Added' ;;
     fix|bugfix|bug|hotfix|patch|resolve) printf 'Fixed' ;;
     remove|delete|deprecate|drop) printf 'Removed' ;;
-    *) printf 'Changed' ;;
+    update|change|refactor|migrate|perf|docs|chore|ci|test) printf 'Changed' ;;
+    *) printf 'Uncategorized' ;;
   esac
 }
 
@@ -170,10 +178,13 @@ done < <("${git_log[@]}" 2>/dev/null; echo)
 
 render_release() {
   printf '## [%s] - %s\n\n' "$VERSION" "$DATE"
-  for section in Breaking Added Fixed Changed Removed; do
+  for section in Breaking Added Fixed Changed Removed Uncategorized; do
     if [[ -n "${SECTIONS[$section]}" ]]; then
       printf '### %s\n\n' "$section"
-      printf '%b' "${SECTIONS[$section]}"
+      if [[ "$section" == "Uncategorized" ]]; then
+        printf '%s\n\n' 'Review these commits manually: no recognized category was found.'
+      fi
+      printf '%s' "${SECTIONS[$section]}"
       printf '\n'
     fi
   done

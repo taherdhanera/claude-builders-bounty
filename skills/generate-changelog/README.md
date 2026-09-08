@@ -23,3 +23,5 @@ Copy this folder to `.claude/skills/generate-changelog/` to enable the `/generat
 ```bash
 bash skills/generate-changelog/tests/test_changelog.sh
 ```
+
+Unknown commit categories appear under **Uncategorized** with a manual-review note; they are never silently assigned to Changed. Literal backslash sequences are preserved. Shallow Git histories are rejected before output is written; fetch full history and tags before retrying.

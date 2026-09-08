@@ -16,7 +16,7 @@ Maps each acceptance criterion to the exact command or artifact in this PR.
 ## Commands
 
 ```bash
-# Regression tests (44 cases)
+# Regression tests (57 checks)
 bash skills/generate-changelog/tests/test_changelog.sh
 
 # Verify PR sample matches repo history through the last sample refresh commit
@@ -43,4 +43,6 @@ bash changelog.sh --preview
 bash changelog.sh --since v1.0.0 --version 1.1.0 --append
 ```
 
-Expected test output ends with `Tests: 44 passed, 0 failed`.
+Expected test output ends with `Tests: 57 passed, 0 failed`.
+
+Additional regression coverage: unknown commit categories require manual review, literal backslashes survive output, and shallow history is rejected without overwriting release notes. Sample source: 2fad474f5c999bd7188dfcc2c30745dd22dbcf28 (six non-merge commits); generated on 2026-09-08 with the updated classifier.

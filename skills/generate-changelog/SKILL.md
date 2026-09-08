@@ -43,3 +43,7 @@ bash skills/generate-changelog/changelog.sh
 | `update:`, `change:`, `refactor:`, `migrate:`, `perf:`, `docs:`, `chore:`, `ci:`, `test:` | Changed |
 | `remove:`, `delete:`, `deprecate:`, `drop:` | Removed |
 | `feat!:`, `fix!:` (breaking suffix) | Breaking + primary section |
+
+Unrecognized commit subjects are retained under **Uncategorized**, with a manual-review note. Known change prefixes still map to **Changed**. Classification uses the commit prefix or leading word; it does not infer meaning from the diff, so review the generated notes before publishing. Literal backslash sequences in subjects are preserved.
+
+Shallow repositories are rejected before output is written because their release history may be incomplete. Fetch full history and tags before retrying. Empty repositories and invalid or unrelated release boundaries also fail without replacing output.
