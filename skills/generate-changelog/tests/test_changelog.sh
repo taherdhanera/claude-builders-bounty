@@ -366,5 +366,7 @@ assert_command_fails 'shallow history fails closed' bash "$CHANGELOG_SH" "$SHALL
 assert_contains "$SHALLOW_OUT" 'manual release notes' 'incomplete history preserves existing output'
 assert_not_contains "$SHALLOW_OUT" '# Changelog' 'incomplete history never produces release output'
 
+bash "$SCRIPT_DIR/test_git_log_failure.sh"
+PASS=$((PASS + 1))
 echo "Tests: ${PASS} passed, ${FAIL} failed"
 [[ "$FAIL" -eq 0 ]]

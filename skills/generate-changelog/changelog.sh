@@ -161,6 +161,13 @@ if [[ -n "$RANGE" ]]; then
   git_log+=("$RANGE")
 fi
 
+# Capture and check the history read before touching any output file.
+# Process substitution hides the producer exit status from the read loop.
+if ! history_text="$("${git_log[@]}")"; then
+  echo "Error: unable to read Git history; changelog output was not written" >&2
+  exit 1
+fi
+
 commit_count=0
 while IFS= read -r line; do
   [[ -z "$line" ]] && continue
@@ -174,7 +181,7 @@ while IFS= read -r line; do
     SECTIONS[Breaking]+="- ${clean} (${hash:0:7})"$'\n'
   fi
   SECTIONS[$section]+="- ${clean} (${hash:0:7})"$'\n'
-done < <("${git_log[@]}" 2>/dev/null; echo)
+done <<< "$history_text"
 
 render_release() {
   printf '## [%s] - %s\n\n' "$VERSION" "$DATE"
