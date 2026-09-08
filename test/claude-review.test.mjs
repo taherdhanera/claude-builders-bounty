@@ -243,3 +243,10 @@ test("metadata-only changes do not falsely report missing changed-line patches",
   assert.equal(review.stats.missingPatches, 0);
   assert.doesNotMatch(review.risks.join("\n"), /patch text.*unavailable/i);
 });
+
+test('rejects malformed file limits instead of silently reducing review coverage', () => {
+  for (const value of ['1.5', '2files', '1e3', '0x10', '9007199254740993', '0', '-1']) {
+    assert.throws(() => parseArgs(['--fixture', 'sample.json', '--max-files', value]), /positive integer/, value);
+  }
+  assert.equal(parseArgs(['--fixture', 'sample.json', '--max-files', '25'])['max-files'], 25);
+});

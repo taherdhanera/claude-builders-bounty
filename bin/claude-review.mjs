@@ -38,7 +38,10 @@ function parseArgs(argv) {
         throw new Error(`${arg} requires a value`);
       }
       const key = arg.slice(2);
-      args[key] = key === "max-files" ? Number.parseInt(value, 10) : value;
+      if (key === "max-files" && !/^[0-9]+$/.test(value)) {
+        throw new Error("--max-files must be a positive integer");
+      }
+      args[key] = key === "max-files" ? Number(value) : value;
       i += 1;
       continue;
     }
@@ -58,7 +61,7 @@ function parseArgs(argv) {
     throw new Error("--format must be markdown or json");
   }
 
-  if (args["max-files"] !== undefined && (!Number.isInteger(args["max-files"]) || args["max-files"] < 1)) {
+  if (args["max-files"] !== undefined && (!Number.isSafeInteger(args["max-files"]) || args["max-files"] < 1)) {
     throw new Error("--max-files must be a positive integer");
   }
 
