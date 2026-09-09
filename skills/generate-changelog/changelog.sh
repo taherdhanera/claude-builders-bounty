@@ -14,7 +14,7 @@ usage() {
 Usage: bash changelog.sh [options] [repo-root]
 
 Options:
-  --since <tag>      Start from a specific tag (default: latest tag)
+  --since <tag>      Start from a specific tag (default: nearest first-parent tag)
   --version <name>   Override release version in the header (e.g. 1.2.0)
   --output <file>    Output file (default: CHANGELOG.md)
   --preview          Print changelog to stdout without writing a file
@@ -84,7 +84,7 @@ if [[ "$(git rev-parse --is-shallow-repository)" == "true" ]]; then
 fi
 
 if [[ -z "$SINCE_TAG" ]]; then
-  SINCE_TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+  SINCE_TAG="$(git describe --first-parent --tags --abbrev=0 2>/dev/null || true)"
 fi
 
 if [[ -n "$SINCE_TAG" ]]; then

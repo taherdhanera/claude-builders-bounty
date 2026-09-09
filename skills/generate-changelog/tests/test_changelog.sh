@@ -366,6 +366,27 @@ assert_command_fails 'shallow history fails closed' bash "$CHANGELOG_SH" "$SHALL
 assert_contains "$SHALLOW_OUT" 'manual release notes' 'incomplete history preserves existing output'
 assert_not_contains "$SHALLOW_OUT" '# Changelog' 'incomplete history never produces release output'
 
+# A tag on a merged topic branch is not a mainline release boundary.
+TAG_REPO="${TMP_ROOT}/tagged-topic"
+setup_repo "$TAG_REPO"
+git -C "$TAG_REPO" commit --allow-empty -qm 'feat: released base'
+git -C "$TAG_REPO" tag v1.0.0
+MAIN_BRANCH="$(git -C "$TAG_REPO" symbolic-ref --short HEAD)"
+git -C "$TAG_REPO" commit --allow-empty -qm 'feat: unreleased mainline work'
+git -C "$TAG_REPO" checkout -qb topic
+git -C "$TAG_REPO" commit --allow-empty -qm 'fix: topic improvement'
+git -C "$TAG_REPO" tag topic-preview
+git -C "$TAG_REPO" checkout -q "$MAIN_BRANCH"
+git -C "$TAG_REPO" merge --no-ff -qm 'merge topic' topic
+TAG_OUT="${TMP_ROOT}/tagged-topic.md"
+bash "$CHANGELOG_SH" "$TAG_REPO" --preview >"$TAG_OUT" 2>/dev/null
+assert_contains "$TAG_OUT" '## [v1.0.0-next]' 'automatic boundary ignores merged topic tags'
+assert_contains "$TAG_OUT" 'unreleased mainline work' 'topic tag cannot hide mainline changes'
+assert_contains "$TAG_OUT" 'topic improvement' 'range still includes topic commits'
+bash "$CHANGELOG_SH" "$TAG_REPO" --since topic-preview --preview >"$TAG_OUT" 2>/dev/null
+assert_contains "$TAG_OUT" '## [topic-preview-next]' 'explicit topic boundary remains supported'
+assert_not_contains "$TAG_OUT" 'unreleased mainline work' 'explicit since keeps caller-selected range'
+
 bash "$SCRIPT_DIR/test_git_log_failure.sh"
 PASS=$((PASS + 1))
 echo "Tests: ${PASS} passed, ${FAIL} failed"

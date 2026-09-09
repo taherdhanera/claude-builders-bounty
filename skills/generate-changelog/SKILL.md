@@ -28,7 +28,7 @@ bash skills/generate-changelog/changelog.sh
 
 ## Behavior
 
-1. Detects the latest git tag (or uses `--since`)
+1. Detects the nearest tag along the first-parent mainline (or uses `--since`)
 2. Validates that the repository has commits and the selected tag resolves to an ancestor of `HEAD`
 3. Collects commits after that tag
 4. Categorizes conventional commits into **Breaking**, **Added**, **Fixed**, **Changed**, and **Removed**
@@ -47,3 +47,5 @@ bash skills/generate-changelog/changelog.sh
 Unrecognized commit subjects are retained under **Uncategorized**, with a manual-review note. Known change prefixes still map to **Changed**. Classification uses the commit prefix or leading word; it does not infer meaning from the diff, so review the generated notes before publishing. Literal backslash sequences in subjects are preserved.
 
 Shallow repositories are rejected before output is written because their release history may be incomplete. Fetch full history and tags before retrying. Empty repositories and invalid or unrelated release boundaries also fail without replacing output.
+
+Automatic release boundaries follow the first-parent history, so a tag on a merged topic branch cannot hide unreleased mainline changes. Commit collection still includes non-merge commits from merged branches. Use `--since <tag>` to select a different ancestor explicitly.
