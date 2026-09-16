@@ -26,6 +26,8 @@ bash skills/generate-changelog/changelog.sh
 - `--preview` — print to stdout without writing a file
 - `--append` — prepend a new release section to an existing `CHANGELOG.md`
 
+Repeated `--append` runs with the same `--version` replace that version's generated section rather than duplicating it.
+
 ## Behavior
 
 1. Detects the nearest tag along the first-parent mainline (or uses `--since`)

@@ -26,4 +26,6 @@ bash skills/generate-changelog/tests/test_changelog.sh
 
 Unknown commit categories appear under **Uncategorized** with a manual-review note; they are never silently assigned to Changed. Literal backslash sequences are preserved. Shallow Git histories are rejected before output is written; fetch full history and tags before retrying.
 
+`--append` is idempotent for a given `--version`: rerunning a release replaces that generated version section instead of duplicating it, while older release history is preserved.
+
 Automatic release boundaries follow the first-parent history, so a tag on a merged topic branch cannot hide unreleased mainline changes. Commit collection still includes non-merge commits from merged branches. Use `--since <tag>` to select a different ancestor explicitly.

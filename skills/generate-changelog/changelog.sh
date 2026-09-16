@@ -212,7 +212,14 @@ write_changelog() {
       {
         printf '# Changelog\n\n'
         cat "$release_file"
-        awk 'BEGIN {skip=0} /^# Changelog/ {skip=1; next} skip==1 && NF==0 {skip=2; next} skip>=1 {print}' "$OUTPUT_FILE"
+        awk -v target="## [$VERSION]" '
+          BEGIN { after_title=0; skip_release=0 }
+          /^# Changelog$/ { after_title=1; next }
+          after_title && NF==0 { after_title=0; next }
+          index($0, target) == 1 { skip_release=1; next }
+          skip_release && /^## \[/ { skip_release=0 }
+          !skip_release { print }
+        ' "$OUTPUT_FILE"
       } >"${OUTPUT_FILE}.tmp"
       mv "${OUTPUT_FILE}.tmp" "$OUTPUT_FILE"
     else

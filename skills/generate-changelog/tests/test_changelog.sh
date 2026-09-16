@@ -277,6 +277,16 @@ assert_contains "$OUT9B" "patch bug" "appended release includes new commit"
 assert_contains "$OUT9B" "## [1.1.0]" "previous release preserved"
 assert_contains "$OUT9B" "first release" "previous release content preserved"
 
+bash "$CHANGELOG_SH" "$REPO9" --since v1.1.0 --version 1.2.0 --append --output "$OUT9B" >/dev/null
+release_count="$(grep -Fc '## [1.2.0]' "$OUT9B")"
+if [[ "$release_count" -eq 1 ]]; then
+  PASS=$((PASS + 1))
+else
+  echo "FAIL: append duplicated the same version ($release_count sections)" >&2
+  FAIL=$((FAIL + 1))
+fi
+assert_contains "$OUT9B" "## [1.1.0]" "idempotent append preserves older release"
+
 # Test 12: new/bug/drop prefixes are stripped from bullet text
 REPO11="${TMP_ROOT}/repo11"
 setup_repo "$REPO11"
