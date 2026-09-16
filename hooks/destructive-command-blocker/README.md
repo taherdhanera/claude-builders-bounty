@@ -28,6 +28,7 @@ Blocked attempts are logged to `~/.claude/hooks/blocked.log` with:
 - block reason
 
 The hook uses Node's JSON parser (available with Claude Code) so escaped quotes, backslashes, and command newlines cannot bypass inspection. Normal Bash commands and non-Bash tool calls exit successfully without logging.
+Malformed or unparseable hook payloads fail closed with a structured deny response and an audit-log entry, so parser failures cannot silently allow an unverified command.
 The SQL checks are scoped to SQL execution contexts or bare SQL statements so harmless commands such as `grep "DROP TABLE" docs` and Unix `truncate -s 0 file` are allowed.
 
 ## Claude Code Hook Format

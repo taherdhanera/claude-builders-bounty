@@ -10,7 +10,13 @@ run_hook() {
   local command="$1"
   local tool_name="${2:-Bash}"
   local payload
-  payload="$(printf '{"tool_name":"%s","tool_input":{"command":"%s"},"cwd":"/tmp/project"}' "$tool_name" "$command")"
+  payload="$(TASK_TEST_TOOL_NAME="$tool_name" TASK_TEST_COMMAND="$command" node -e '
+    process.stdout.write(JSON.stringify({
+      tool_name: process.env.TASK_TEST_TOOL_NAME,
+      tool_input: { command: process.env.TASK_TEST_COMMAND },
+      cwd: "/tmp/project",
+    }));
+  ')"
   CLAUDE_HOOKS_LOG_PATH="$tmpdir/blocked.log" bash "$hook" <<< "$payload" >"$tmpdir/stdout" 2>"$tmpdir/stderr"
 }
 
@@ -23,7 +29,7 @@ expect_blocked() {
   status=$?
   set -e
   [[ "$status" -eq 0 ]] || { echo "Expected structured deny status for: $command"; exit 1; }
-  grep -F '"hookSpecificOutput"' "$tmpdir/stdout" >/dev/null || { echo "Missing hookSpecificOutput"; exit 1; }
+  grep -F '"hookSpecificOutput"' "$tmpdir/stdout" >/dev/null || { echo "Missing hookSpecificOutput for: $command"; cat "$tmpdir/stderr"; exit 1; }
   grep -F '"hookEventName":"PreToolUse"' "$tmpdir/stdout" >/dev/null || { echo "Missing PreToolUse hook event"; exit 1; }
   grep -F '"permissionDecision":"deny"' "$tmpdir/stdout" >/dev/null || { echo "Missing deny decision"; exit 1; }
   grep -F "$reason" "$tmpdir/stdout" >/dev/null || { echo "Missing structured reason: $reason"; exit 1; }
@@ -40,17 +46,17 @@ expect_allowed() {
 }
 
 expect_blocked "rm -rf /tmp/demo" "rm -rf recursive deletion"
-expect_blocked 'echo safe\nrm -rf /tmp/demo' "rm -rf recursive deletion"
+expect_blocked $'echo safe\nrm -rf /tmp/demo' "rm -rf recursive deletion"
 expect_blocked "git status && rm -fr build" "rm -rf recursive deletion"
 expect_blocked "rm --recursive --force build" "rm -rf recursive deletion"
 expect_blocked "rm -r -f build" "rm -rf recursive deletion"
 expect_blocked "psql -c DROP TABLE users" "DROP TABLE statement"
 expect_blocked "mysql -e TRUNCATE audit_log" "TRUNCATE statement"
 expect_blocked "psql -c 'TRUNCATE users'" "TRUNCATE statement"
-expect_blocked 'mysql -e \"TRUNCATE TABLE audit_log\"' "TRUNCATE statement"
+expect_blocked 'mysql -e "TRUNCATE TABLE audit_log"' "TRUNCATE statement"
 expect_blocked "sqlite3 demo.db 'truncate users;'" "TRUNCATE statement"
-expect_blocked "sqlcmd -Q 'TrUnCaTe\\tTABLE audit_log'" "TRUNCATE statement"
-expect_blocked "psql -c 'TRUNCATE\\nTABLE audit_log'" "TRUNCATE statement"
+expect_blocked $'sqlcmd -Q \'TrUnCaTe\tTABLE audit_log\'' "TRUNCATE statement"
+expect_blocked $'psql -c \'TRUNCATE\nTABLE audit_log\'' "TRUNCATE statement"
 expect_blocked "psql -c DELETE FROM users" "DELETE FROM without WHERE clause"
 expect_blocked "DELETE FROM users" "DELETE FROM without WHERE clause"
 expect_blocked "git push --force origin main" "force push"
@@ -70,10 +76,15 @@ expect_allowed "truncate -s 0 notes.txt"
 expect_allowed "grep -R \"DROP TABLE\" docs"
 expect_allowed "grep -R 'TRUNCATE TABLE' docs"
 expect_allowed "psql -c 'SELECT truncate_count FROM metrics'"
-expect_allowed 'psql -c \"SELECT '\''truncate'\'' AS operation\"'
-expect_allowed 'psql -c \"SELECT '\''truncate users'\'' AS operation\"'
+expect_allowed "psql -c \"SELECT 'truncate' AS operation\""
+expect_allowed "psql -c \"SELECT 'truncate users' AS operation\""
 expect_allowed "git status && npm test"
 expect_allowed "rm -rf /tmp/demo" "Read"
+
+rm -f "$tmpdir/blocked.log" "$tmpdir/stdout" "$tmpdir/stderr"
+CLAUDE_HOOKS_LOG_PATH="$tmpdir/blocked.log" bash "$hook" <<< '{"tool_name":"Bash","tool_input":' >"$tmpdir/stdout" 2>"$tmpdir/stderr"
+grep -F '"permissionDecision":"deny"' "$tmpdir/stdout" >/dev/null || { echo "Malformed payload did not fail closed"; exit 1; }
+grep -F 'invalid hook payload' "$tmpdir/blocked.log" >/dev/null || { echo "Malformed payload was not logged"; exit 1; }
 
 install_home="$tmpdir/install-home"
 mkdir -p "$install_home/.claude"

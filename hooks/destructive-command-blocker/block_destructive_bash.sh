@@ -7,6 +7,10 @@ if [[ -z "${payload//[[:space:]]/}" ]]; then
   exit 0
 fi
 
+json_escape() {
+  sed -E 's/\\/\\\\/g; s/"/\\"/g' <<< "$1" | tr -d '\n'
+}
+
 mapfile -d '' -t parsed_fields < <(
   printf '%s' "$payload" | node -e '
     let input = "";
@@ -19,16 +23,32 @@ mapfile -d '' -t parsed_fields < <(
           data?.tool_name ?? "",
           data?.tool_input?.command ?? data?.command ?? "",
           data?.tool_input?.cwd ?? data?.cwd ?? data?.project_path ?? "",
+          "ok",
         ];
         for (const value of values) {
           process.stdout.write((typeof value === "string" ? value : "") + "\0");
         }
       } catch {
-        process.exitCode = 2;
+        for (const value of ["", "", "", "invalid"]) process.stdout.write(value + "\0");
       }
     });
   '
 )
+
+parser_status="${parsed_fields[3]:-invalid}"
+if [[ "$parser_status" != "ok" ]]; then
+  reason="invalid hook payload"
+  command="[unparseable hook payload]"
+  project_path="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+  log_path="${CLAUDE_HOOKS_LOG_PATH:-$HOME/.claude/hooks/blocked.log}"
+  mkdir -p "$(dirname "$log_path")"
+  timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  printf '{"timestamp":"%s","command":"%s","project_path":"%s","reason":"%s"}\n' \
+    "$(json_escape "$timestamp")" "$(json_escape "$command")" \
+    "$(json_escape "$project_path")" "$(json_escape "$reason")" >> "$log_path"
+  printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked destructive Bash command: invalid hook payload. Refusing to execute an unverified command."}}'
+  exit 0
+fi
 
 tool_name="${parsed_fields[0]:-}"
 if [[ -n "$tool_name" && "$tool_name" != "Bash" ]]; then
@@ -99,10 +119,6 @@ fi
 if [[ -z "$reason" ]]; then
   exit 0
 fi
-
-json_escape() {
-  sed -E 's/\\/\\\\/g; s/"/\\"/g' <<< "$1" | tr -d '\n'
-}
 
 log_path="${CLAUDE_HOOKS_LOG_PATH:-$HOME/.claude/hooks/blocked.log}"
 mkdir -p "$(dirname "$log_path")"
