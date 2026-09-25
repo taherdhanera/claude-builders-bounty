@@ -96,7 +96,9 @@ def main() -> None:
     require(schedule.get("triggerAtHour") == 17, "trigger must run at 17:00")
     require(schedule.get("triggerAtMinute") == 0, "trigger minute must be 0")
 
-    require("claude-sonnet-4-20250514" in workflow_text, "Claude Sonnet 4 model is missing")
+    model_body = node_by_name(workflow, "Generate Claude Summary")["parameters"].get("jsonBody", "")
+    require('"model": "claude-sonnet-4-6"' in model_body, "active Claude Sonnet 4.6 replacement is missing")
+    require("claude-sonnet-4-20250514" not in model_body, "workflow must not call the retired Claude Sonnet 4 model")
     require("https://api.anthropic.com/v1/messages" in workflow_text, "Claude Messages API URL is missing")
     require("ANTHROPIC_API_KEY" in workflow_text, "Anthropic API key env var is missing")
     require("GITHUB_REPO_OWNER" in workflow_text, "GitHub owner env var is missing")
@@ -159,7 +161,7 @@ def main() -> None:
     print(f"nodes={len(workflow['nodes'])}")
     print(f"connections={len(workflow['connections'])}")
     print("delivery=discord")
-    print("model=claude-sonnet-4-20250514")
+    print("model=claude-sonnet-4-6")
     print("github-fetch=paginated-fail-loud")
 
 

@@ -1,6 +1,6 @@
 # Weekly GitHub Activity Summary for n8n
 
-This workflow generates a weekly narrative summary for a GitHub repository with Claude and posts it to Discord.
+This workflow generates a weekly narrative summary for a GitHub repository with Claude and posts it to Discord. It uses the Anthropic Messages API model `claude-sonnet-4-6`; Anthropic lists the issue's originally specified `claude-sonnet-4-20250514` model as retired and recommends `claude-sonnet-4-6` as its replacement ([model deprecations](https://docs.anthropic.com/en/docs/about-claude/model-deprecations)).
 
 ## Setup
 
@@ -27,7 +27,7 @@ This workflow generates a weekly narrative summary for a GitHub repository with 
 - Fetches commits, recently closed issues, and recently merged PRs from the GitHub API for the last 7 days using n8n HTTP Request nodes.
 - Executes each GitHub fetch node once, follows up to 10 API pages, and still produces a summary for a quiet week with no matching activity.
 - Retries transient GitHub failures three times, then fails the workflow instead of generating a plausible-looking summary from partial activity. Reaching the 1,000-item pagination ceiling also fails closed.
-- Sends those events to `claude-sonnet-4-20250514` with a narrative summary prompt.
+- Sends those events to the active `claude-sonnet-4-6` model with a narrative summary prompt.
 - Treats repository activity as untrusted data and tells Claude never to follow instructions embedded in commit messages, issue or PR titles, author names, or URLs.
 - Posts the final summary to Discord.
 - Trims unusually long Claude output before delivery so the Discord webhook stays below its message-size limit.

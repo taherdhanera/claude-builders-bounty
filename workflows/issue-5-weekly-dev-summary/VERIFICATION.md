@@ -17,7 +17,7 @@ workflow validation passed
 nodes=9
 connections=8
 delivery=discord
-model=claude-sonnet-4-20250514
+model=claude-sonnet-4-6
 github-fetch=paginated-fail-loud
 ```
 
