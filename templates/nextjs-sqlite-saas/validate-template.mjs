@@ -45,6 +45,7 @@ const requiredTerms = [
   "greenfield",
   "Claude Code",
   "Node.js",
+  "Node.js 22",
   "Edge Runtime",
   "persistent writable volume",
   "one writer",
@@ -81,7 +82,7 @@ if (!/Status: Protocol only[\s\S]*NOT run/i.test(smokeProtocol)) {
   errors.push("Smoke-test protocol must clearly distinguish an unrun procedure from execution evidence");
 }
 
-for (const term of ["Exact first prompt", "Pass only if", "Fail if", "claude --version"]) {
+for (const term of ["Exact first prompt", "Pass only if", "Fail if", "claude --version", "Do not edit files"]) {
   if (!smokeProtocol.includes(term)) {
     errors.push(`Smoke-test protocol missing: ${term}`);
   }
@@ -98,7 +99,7 @@ if (codeFenceCount % 2 !== 0) {
   errors.push(`Unbalanced Markdown code fences: ${codeFenceCount}`);
 }
 
-if (!/Expected behavior:[\s\S]*Claude Code[\s\S]*without asking/i.test(template)) {
+if (!/Expected behavior:[\s\S]*Claude Code[\s\S]*(?:without asking|should not ask)/i.test(template)) {
   errors.push("Missing explicit expected Claude Code greenfield behavior");
 }
 

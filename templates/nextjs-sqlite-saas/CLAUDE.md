@@ -9,6 +9,9 @@ The goal is a small production system that is easy to reason about: server-first
 - Next.js 15 App Router with React 19 and TypeScript strict mode.
   Reason: App Router gives server components, route handlers, metadata, layouts, and streaming in one model; strict TypeScript catches data-contract drift before runtime.
 
+- Use Node.js 22 as the baseline for projects created from this template; pin the same major in `package.json` `engines`, `.nvmrc`, CI, and deployment.
+  Reason: a consistent runtime avoids dependency and native-module drift between development, automation, and production.
+
 - In Next.js 15, await request APIs such as `params`, `searchParams`, `cookies()`, and `headers()`; keep the installed Next.js version and examples aligned.
   Reason: Next.js 15 made request-time APIs asynchronous, and relying on deprecated synchronous compatibility can break as the project upgrades.
 
@@ -27,7 +30,7 @@ The goal is a small production system that is easy to reason about: server-first
 - Use one UI system, preferably shadcn/ui plus Tailwind CSS.
   Reason: one component vocabulary prevents inconsistent SaaS screens and reduces design drift.
 
-- Use Vitest or Node test for pure units, Playwright for user flows, and targeted integration tests for database writes.
+- Use Vitest or Node's built-in `node:test` for pure units, Playwright for user flows, and targeted integration tests for database writes.
   Reason: most regressions in this stack happen at boundaries: forms, auth, database, and redirects.
 
 ## Project Structure
@@ -191,7 +194,7 @@ export const env = envSchema.parse(process.env);
 - For Turso/libSQL, keep the client and credentials server-only, use the provider's remote connection and migration workflow, and do not apply local-file, WAL, or local-volume assumptions.
   Reason: remote SQLite has network, authentication, and replication semantics that differ from an on-disk database.
 
-Migration example:
+Migration example (assumes the `users` table was created by an earlier migration; in a new database, create the referenced identity table first and align its key with the configured auth provider):
 
 ```sql
 CREATE TABLE projects (
@@ -449,8 +452,8 @@ If requirements are ambiguous, choose the safer production behavior and document
 
 Run the reproducible acceptance procedure in `verification/claude-code-greenfield-smoke.md` in a disposable fresh project. The procedure is a manual Claude Code behavior test; the repository's automated contract check only verifies the template's contents and does not execute Claude Code.
 
-The smoke-test prompt asks Claude Code to implement a tenant-scoped project create/list flow using the documented conventions. It must not ask the user to choose stack, folder layout, migration, validation, or server/client patterns already specified here. If the starter has no configured identity provider, it must fail closed and report that integration point rather than inventing or bypassing authentication.
+The smoke-test prompt asks Claude Code, in read-only Plan mode, to plan a tenant-scoped project create/list flow using the documented conventions. It checks whether Claude Code inspects the fresh starter and avoids inventing package scripts, while making no code or database changes. It must not ask the user to choose stack, folder layout, migration, validation, or server/client patterns already specified here. If the starter has no configured identity provider, it must fail closed and report that integration point rather than inventing or bypassing authentication.
 
-Expected behavior: Claude Code should inspect the starter and this file, explain any assumptions, create a reviewed Drizzle migration, validate form input with Zod, keep the page server-first, authorize writes via the trusted auth boundary, add a focused test, and report the exact checks it ran without asking which stack, folder layout, migration, validation, or component patterns to use. It must not claim runtime or production validation it did not perform.
+Expected behavior: Claude Code should inspect the starter and this file, explain safe assumptions, propose an append-only Drizzle migration, Zod validation, a server-first page, trusted authorization, focused tests, and commands that actually exist or should be added. It should not ask which stack, folder layout, migration, validation, or component patterns to use, and must not claim to have edited files or run checks. This is context-understanding evidence, not implementation or production validation.
 
 Automated contract check: run `bash templates/nextjs-sqlite-saas/tests/validate-template-contract.sh` from the repository root. This copies the instructions into a temporary fixture and checks required guidance; it is not a substitute for the manual Claude Code acceptance test.
