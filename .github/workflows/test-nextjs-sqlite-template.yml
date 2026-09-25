@@ -28,9 +28,9 @@ jobs:
       - name: Validate template contract
         run: node templates/nextjs-sqlite-saas/validate-template.mjs
 
-      - name: Run greenfield smoke test
+      - name: Validate greenfield template contract
         shell: bash
-        run: bash templates/nextjs-sqlite-saas/tests/smoke-greenfield.sh
+        run: bash templates/nextjs-sqlite-saas/tests/validate-template-contract.sh
 
       - name: Check whitespace
         run: git diff --check

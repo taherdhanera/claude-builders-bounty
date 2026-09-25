@@ -1,6 +1,6 @@
 # CLAUDE.md - Next.js 15 + SQLite SaaS
 
-Use this file as the operating contract for a greenfield SaaS product built with Next.js 15 App Router, React 19, TypeScript, and SQLite through either `better-sqlite3` for a single-node deployment or Turso/libSQL for hosted edge SQLite.
+Use this file as the operating contract for a greenfield SaaS product built with Next.js 15 App Router, React 19, TypeScript, and SQLite. Choose either Node-only `better-sqlite3` on one host with persistent local storage or remote Turso/libSQL; do not mix providers within an environment.
 
 The goal is a small production system that is easy to reason about: server-first UI, explicit data access, boring migrations, predictable auth, and no hidden client-side business logic.
 
@@ -9,8 +9,11 @@ The goal is a small production system that is easy to reason about: server-first
 - Next.js 15 App Router with React 19 and TypeScript strict mode.
   Reason: App Router gives server components, route handlers, metadata, layouts, and streaming in one model; strict TypeScript catches data-contract drift before runtime.
 
-- SQLite is the system of record. Use `better-sqlite3` for local VPS or single-region apps; use Turso/libSQL when the product needs hosted replicas.
-  Reason: SQLite keeps the MVP simple, cheap, and reliable while still supporting real relational constraints.
+- In Next.js 15, await request APIs such as `params`, `searchParams`, `cookies()`, and `headers()`; keep the installed Next.js version and examples aligned.
+  Reason: Next.js 15 made request-time APIs asynchronous, and relying on deprecated synchronous compatibility can break as the project upgrades.
+
+- Choose exactly one SQLite provider per environment: `better-sqlite3` for a single Node.js host with persistent local storage, or a server-side Turso/libSQL client for a remote database.
+  Reason: local-file and remote-database connection, durability, and deployment assumptions differ; mixing them makes migrations and failure behavior unpredictable.
 
 - Use Drizzle ORM for schema, migrations, and typed queries.
   Reason: Drizzle keeps SQL visible and migration files reviewable; avoid ORMs that hide query shape or create opaque runtime behavior.
@@ -156,6 +159,9 @@ export const env = envSchema.parse(process.env);
 - Use foreign keys and unique indexes for product invariants.
   Reason: application checks can race; database constraints cannot be skipped by another code path.
 
+- Generate and review Drizzle migrations, then apply them once in the release/deployment step before deploying code that depends on them; do not migrate on every app boot or use schema push as the production migration plan.
+  Reason: concurrent instances must not race to alter production schema, and reviewed migrations make deploys repeatable and recoverable.
+
 - Use transactions for multi-table writes.
   Reason: partial writes create support tickets and inconsistent billing state.
 
@@ -163,7 +169,27 @@ export const env = envSchema.parse(process.env);
   Reason: database access belongs in query/action modules where auth and transactions can be enforced.
 
 - For Turso/libSQL, design for network latency and avoid chatty query loops.
-  Reason: edge-hosted SQLite is fast when calls are batched and predictable.
+  Reason: remote SQLite stays more responsive when calls are batched and predictable.
+
+### SQLite Runtime, Storage, And Concurrency
+
+- `better-sqlite3` is a native Node.js driver: keep every import and query on the server, set database-backed Route Handlers to `runtime = "nodejs"`, and never use it in Edge Runtime or client code.
+  Reason: native bindings cannot run in Edge or the browser, and bundling server dependencies into client code can expose internals or fail production builds.
+
+- Store a file-backed database outside `public/` and source-controlled paths; ignore it in Git and use a persistent writable volume with tested backups and restores in production.
+  Reason: ephemeral deployments can silently erase the system of record, while public or committed database files can disclose user data.
+
+- Enable SQLite foreign-key enforcement on every connection; use WAL only on a supported local persistent filesystem, and configure a bounded busy timeout for short write contention.
+  Reason: SQLite settings are connection-scoped, WAL is not a distributed-storage solution, and a bounded wait is safer than hanging requests.
+
+- Design local SQLite writes around one writer at a time: keep transactions short, never hold one open across network calls, and do not scale file-backed writes across hosts or shared network volumes.
+  Reason: SQLite serializes writes; extra app instances do not turn a local database file into a multi-writer database service.
+
+- Before selecting `better-sqlite3`, verify the deployment supports its native module, Node.js runtime, persistent writable disk, backup/restore, and expected concurrency; otherwise choose a managed remote SQLite provider.
+  Reason: a development database working locally does not prove the production platform can load its native binding or preserve its data.
+
+- For Turso/libSQL, keep the client and credentials server-only, use the provider's remote connection and migration workflow, and do not apply local-file, WAL, or local-volume assumptions.
+  Reason: remote SQLite has network, authentication, and replication semantics that differ from an on-disk database.
 
 Migration example:
 
@@ -190,6 +216,9 @@ CREATE TABLE projects (
 - Use explicit column lists instead of `select *`.
   Reason: adding sensitive columns later should not leak into old API responses.
 
+- Bind all user-controlled SQL values through Drizzle parameters; never interpolate input into SQL strings.
+  Reason: parameter binding prevents injection while preserving correct query-plan behavior.
+
 - Convert database `null` into product-level state intentionally.
   Reason: nullable data causes most SaaS edge-case bugs when it is passed through blindly.
 
@@ -197,6 +226,9 @@ CREATE TABLE projects (
 
 - Authentication proves who the user is; authorization decides what they may do. Implement them as separate helpers.
   Reason: mixing them makes admin and account-boundary bugs easier to introduce.
+
+- Resolve identity through one trusted server-only `requireCurrentUser()` boundary; if no auth provider is configured, fail closed and document the integration point instead of trusting submitted owner ids or inventing insecure auth.
+  Reason: a greenfield scaffold must make authorization requirements explicit without pretending an unconfigured session is trustworthy.
 
 - Every organization-scoped query checks membership in the same transaction or query path.
   Reason: dashboard data must not leak across accounts.
@@ -245,6 +277,7 @@ Example:
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { requireCurrentUser } from "@/lib/auth";
 import { createProjectRecord } from "./queries";
 
 const createProjectSchema = z.object({
@@ -260,7 +293,8 @@ export async function createProject(formData: FormData) {
     return { ok: false as const, message: "Enter a project name." };
   }
 
-  const project = await createProjectRecord(input.data);
+  const actor = await requireCurrentUser();
+  const project = await createProjectRecord({ ...input.data, ownerId: actor.id });
   revalidatePath("/dashboard");
   return { ok: true as const, projectId: project.id };
 }
@@ -411,15 +445,12 @@ When changing this project:
 
 If requirements are ambiguous, choose the safer production behavior and document the assumption in the PR. Do not pause for clarification unless the wrong assumption could cause data loss, payment errors, or a security issue.
 
-## Greenfield Smoke Test
+## Greenfield Claude Code Smoke Test
 
-This template was reviewed against a blank Next.js 15 + SQLite SaaS setup path:
+Run the reproducible acceptance procedure in `verification/claude-code-greenfield-smoke.md` in a disposable fresh project. The procedure is a manual Claude Code behavior test; the repository's automated contract check only verifies the template's contents and does not execute Claude Code.
 
-1. `npx create-next-app@latest acme-saas --ts --app`
-2. Add SQLite/Drizzle files using the structure above.
-3. Place this file at the project root as `CLAUDE.md`.
-4. Ask Claude Code to add a project creation form backed by SQLite.
+The smoke-test prompt asks Claude Code to implement a tenant-scoped project create/list flow using the documented conventions. It must not ask the user to choose stack, folder layout, migration, validation, or server/client patterns already specified here. If the starter has no configured identity provider, it must fail closed and report that integration point rather than inventing or bypassing authentication.
 
-Expected behavior: Claude Code should infer the folder structure, create a migration, validate form input with Zod, keep the page server-first, implement a Server Action, add a focused test, and report validation commands without asking which stack, folder layout, migration style, or component pattern to use.
+Expected behavior: Claude Code should inspect the starter and this file, explain any assumptions, create a reviewed Drizzle migration, validate form input with Zod, keep the page server-first, authorize writes via the trusted auth boundary, add a focused test, and report the exact checks it ran without asking which stack, folder layout, migration, validation, or component patterns to use. It must not claim runtime or production validation it did not perform.
 
-Executable verifier: run `bash templates/nextjs-sqlite-saas/tests/smoke-greenfield.sh` from the repository root to copy this template into a temporary greenfield tree and verify that the required sections, SQLite conventions, Route Handler guidance, auth boundary rules, testing rules, and no-clarifying-questions instruction are present after copy.
+Automated contract check: run `bash templates/nextjs-sqlite-saas/tests/validate-template-contract.sh` from the repository root. This copies the instructions into a temporary fixture and checks required guidance; it is not a substitute for the manual Claude Code acceptance test.

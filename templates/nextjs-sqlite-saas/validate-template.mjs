@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const templatePath = join(here, "CLAUDE.md");
 const template = readFileSync(templatePath, "utf8");
+const smokeProtocolPath = join(here, "verification", "claude-code-greenfield-smoke.md");
+const smokeProtocol = readFileSync(smokeProtocolPath, "utf8");
 
 const requiredHeadings = [
   "# CLAUDE.md - Next.js 15 + SQLite SaaS",
@@ -26,7 +28,7 @@ const requiredHeadings = [
   "## Pull Request Rules",
   "## What We Do Not Do",
   "## Agent Workflow",
-  "## Greenfield Smoke Test",
+  "## Greenfield Claude Code Smoke Test",
 ];
 
 const requiredTerms = [
@@ -42,6 +44,13 @@ const requiredTerms = [
   "migrations",
   "greenfield",
   "Claude Code",
+  "Node.js",
+  "Edge Runtime",
+  "persistent writable volume",
+  "one writer",
+  "busy timeout",
+  "requireCurrentUser()",
+  "searchParams",
 ];
 
 const errors = [];
@@ -63,9 +72,19 @@ if (reasonCount < 40) {
   errors.push(`Expected at least 40 reasoned rules, found ${reasonCount}`);
 }
 
-const numberedSmokeSteps = (template.match(/^\d+\.\s+/gm) || []).length;
+const numberedSmokeSteps = (smokeProtocol.match(/^\d+\.\s+/gm) || []).length;
 if (numberedSmokeSteps < 4) {
-  errors.push(`Expected at least 4 numbered greenfield smoke-test steps, found ${numberedSmokeSteps}`);
+  errors.push(`Expected at least 4 numbered real Claude Code smoke-test setup steps, found ${numberedSmokeSteps}`);
+}
+
+if (!/Status: Protocol only[\s\S]*NOT run/i.test(smokeProtocol)) {
+  errors.push("Smoke-test protocol must clearly distinguish an unrun procedure from execution evidence");
+}
+
+for (const term of ["Exact first prompt", "Pass only if", "Fail if", "claude --version"]) {
+  if (!smokeProtocol.includes(term)) {
+    errors.push(`Smoke-test protocol missing: ${term}`);
+  }
 }
 
 const antiPatternSection = template.split("## What We Do Not Do")[1]?.split("## Agent Workflow")[0] || "";
@@ -87,6 +106,14 @@ if (!/middleware\.ts[\s\S]*auth redirects[\s\S]*coarse guards/i.test(template)) 
   errors.push("Missing middleware scope guidance");
 }
 
+if (!/native Node\.js driver[\s\S]*Edge Runtime[\s\S]*client code/i.test(template)) {
+  errors.push("Missing better-sqlite3 Node-only runtime boundary");
+}
+
+if (!/await requireCurrentUser\(\)[\s\S]*ownerId: actor\.id/.test(template)) {
+  errors.push("Server Action example must derive owner identity from the trusted server auth boundary");
+}
+
 if (errors.length > 0) {
   console.error("CLAUDE.md template validation failed:");
   for (const error of errors) {
@@ -95,4 +122,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`CLAUDE.md template validation passed: ${requiredHeadings.length} headings, ${reasonCount} reasoned rules, ${antiPatternCount} anti-patterns, ${numberedSmokeSteps} smoke-test steps.`);
+console.log(`CLAUDE.md template contract passed: ${requiredHeadings.length} headings, ${reasonCount} reasoned rules, ${antiPatternCount} anti-patterns, ${numberedSmokeSteps} documented manual setup steps. Claude Code execution is not performed by this check.`);
