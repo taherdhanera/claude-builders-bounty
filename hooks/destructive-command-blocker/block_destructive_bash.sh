@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 set -uo pipefail
+umask 077
 
 payload="$(cat)"
-
-if [[ -z "${payload//[[:space:]]/}" ]]; then
-  exit 0
-fi
 
 json_escape() {
   sed -E 's/\\/\\\\/g; s/"/\\"/g' <<< "$1" | tr -d '\n'
@@ -42,6 +39,7 @@ if [[ "$parser_status" != "ok" ]]; then
   project_path="${CLAUDE_PROJECT_DIR:-$(pwd)}"
   log_path="${CLAUDE_HOOKS_LOG_PATH:-$HOME/.claude/hooks/blocked.log}"
   mkdir -p "$(dirname "$log_path")"
+  chmod 600 "$log_path" 2>/dev/null || true
   timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   printf '{"timestamp":"%s","command":"%s","project_path":"%s","reason":"%s"}\n' \
     "$(json_escape "$timestamp")" "$(json_escape "$command")" \
@@ -67,43 +65,61 @@ fi
 
 lower_command="$(printf '%s' "$command" | tr '[:upper:]' '[:lower:]')"
 reason=""
+rm_command_prefix='(^|[[:space:];&|/]|\\)rm'
+rm_combined_rf_pattern="${rm_command_prefix}[[:space:]]+-[[:alnum:]_-]*r[[:alnum:]_-]*f[[:alnum:]_-]*($|[[:space:]])"
+rm_combined_fr_pattern="${rm_command_prefix}[[:space:]]+-[[:alnum:]_-]*f[[:alnum:]_-]*r[[:alnum:]_-]*($|[[:space:]])"
+rm_separate_rf_pattern="${rm_command_prefix}[[:space:]]+-[[:alnum:]_-]*r[[:alnum:]_-]*[[:space:]]+-[[:alnum:]_-]*f[[:alnum:]_-]*($|[[:space:]])"
+rm_separate_fr_pattern="${rm_command_prefix}[[:space:]]+-[[:alnum:]_-]*f[[:alnum:]_-]*[[:space:]]+-[[:alnum:]_-]*r[[:alnum:]_-]*($|[[:space:]])"
+rm_long_flags_pattern="${rm_command_prefix}[[:space:]][^;&|]*(--recursive|-[[:alnum:]_-]*r)[^;&|]*(--force|-[[:alnum:]_-]*f)"
 sql_runner_pattern='(^|[[:space:];&|])(psql|mysql|sqlite3|sqlcmd)[[:space:]]'
 bare_sql_pattern='(^|[;&|])[[:space:]]*(drop[[:space:]]+table|delete[[:space:]]+from|truncate[[:space:]]+[^-[:space:]])'
+bare_sql_commented_drop_pattern='(^|[;&|])[[:space:]]*drop[^;&|]*(/[*]|--)[^;&|]*table'
+sql_comment_pattern='(--|/[*])'
 force_config_pattern='git[[:space:]][^;&|]*-c[[:space:]]+push[.]force=[^;&|]*push'
-force_plus_ref_pattern='git[[:space:]]+push[[:space:]][^;&|]*[[:space:]][+][^[:space:];&|]+'
+git_push_prefix='(^|[[:space:];&|/])git[[:space:]]+([^[:space:];&|]+[[:space:]]+)*push[[:space:]]+'
+force_long_push_pattern="${git_push_prefix}[^;&|]*(--force-with-lease|--force)([^[:alnum:]_-]|$)"
+force_short_push_pattern="${git_push_prefix}[^;&|]*[[:space:]]-f($|[[:space:]])"
+force_plus_ref_pattern="${git_push_prefix}[^;&|]*[[:space:]][+][^[:space:];&|]+"
 reset_hard_pattern='(^|[[:space:];&|])git[[:space:]]+reset[[:space:]]+--hard($|[[:space:];&|])'
 dd_device_pattern='(^|[[:space:];&|])dd[[:space:]][^;&|]*of=/dev/'
 block_device_pattern='(^|[[:space:];&|])(mkfs|wipefs)([.]|[[:space:]])'
 sql_execution_context=false
+sql_has_comment=false
 # Match a statement at the beginning of a SQL client's quoted command argument,
 # not a quoted string literal inside a SELECT expression.
 quoted_truncate_pattern="(^|[[:space:];&|])(psql|mysql|sqlcmd)[[:space:]][^\"';&|]*(-c|-e|-q|--command|--execute)([[:space:]]+|=)[\"'][[:space:]]*truncate([[:space:];]|$)"
 sqlite_truncate_pattern="(^|[[:space:];&|])sqlite3[[:space:]]+[^[:space:]\"';&|]+[[:space:]]+[\"'][[:space:]]*truncate([[:space:];]|$)"
-if [[ "$lower_command" =~ $sql_runner_pattern ]] || [[ "$lower_command" =~ $bare_sql_pattern ]]; then
+if [[ "$lower_command" =~ $sql_runner_pattern ]] ||
+   [[ "$lower_command" =~ $bare_sql_pattern ]] ||
+   [[ "$lower_command" =~ $bare_sql_commented_drop_pattern ]]; then
   sql_execution_context=true
 fi
+if [[ "$sql_execution_context" == true && "$lower_command" =~ $sql_comment_pattern ]]; then
+  sql_has_comment=true
+fi
 
-if [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]]+-[[:alnum:]_-]*r[[:alnum:]_-]*f[[:alnum:]_-]*($|[[:space:]]) ]] ||
-   [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]]+-[[:alnum:]_-]*f[[:alnum:]_-]*r[[:alnum:]_-]*($|[[:space:]]) ]] ||
-   [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]]+-[[:alnum:]_-]*r[[:alnum:]_-]*[[:space:]]+-[[:alnum:]_-]*f[[:alnum:]_-]*($|[[:space:]]) ]] ||
-   [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]]+-[[:alnum:]_-]*f[[:alnum:]_-]*[[:space:]]+-[[:alnum:]_-]*r[[:alnum:]_-]*($|[[:space:]]) ]] ||
-   [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]][^\;\&\|]*(--recursive|-[[:alnum:]_-]*r)[^\;\&\|]*(--force|-[[:alnum:]_-]*f) ]] ||
-   [[ "$lower_command" =~ (^|[[:space:]\;\&\|])rm[[:space:]][^\;\&\|]*(--force|-[[:alnum:]_-]*f)[^\;\&\|]*(--recursive|-[[:alnum:]_-]*r) ]]; then
+if [[ "$lower_command" =~ $rm_combined_rf_pattern ]] ||
+   [[ "$lower_command" =~ $rm_combined_fr_pattern ]] ||
+   [[ "$lower_command" =~ $rm_separate_rf_pattern ]] ||
+   [[ "$lower_command" =~ $rm_separate_fr_pattern ]] ||
+   [[ "$lower_command" =~ $rm_long_flags_pattern ]] ||
+   [[ "$lower_command" =~ ${rm_command_prefix}[[:space:]][^\;\&\|]*(--force|-[[:alnum:]_-]*f)[^\;\&\|]*(--recursive|-[[:alnum:]_-]*r) ]]; then
   reason="rm -rf recursive deletion"
-elif [[ "$sql_execution_context" == true && "$lower_command" =~ drop[[:space:]]+table ]]; then
+elif [[ "$sql_execution_context" == true && "$lower_command" =~ drop[[:space:]]+table ]] ||
+     [[ "$sql_execution_context" == true && "$sql_has_comment" == true && "$lower_command" =~ drop && "$lower_command" =~ table ]]; then
   reason="DROP TABLE statement"
 elif [[ "$sql_execution_context" == true ]] &&
      { [[ "$lower_command" =~ (^|[[:space:]\;\&\|])truncate($|[[:space:]\;\&\|]) ]] ||
        [[ "$lower_command" =~ $quoted_truncate_pattern ]] ||
        [[ "$lower_command" =~ $sqlite_truncate_pattern ]]; }; then
   reason="TRUNCATE statement"
-elif [[ "$lower_command" =~ git[[:space:]]+push([^;\&\|])*--force([^[:alnum:]_-]|$) ]] ||
-     [[ "$lower_command" =~ git[[:space:]]+push([^;\&\|])*--force-with-lease([^[:alnum:]_-]|$) ]] ||
-     [[ "$lower_command" =~ git[[:space:]]+push([^;\&\|])*-f($|[[:space:]]) ]] ||
+elif [[ "$lower_command" =~ $force_long_push_pattern ]] ||
+     [[ "$lower_command" =~ $force_short_push_pattern ]] ||
      [[ "$lower_command" =~ $force_config_pattern ]] ||
      [[ "$lower_command" =~ $force_plus_ref_pattern ]]; then
   reason="force push"
-elif [[ "$sql_execution_context" == true && "$lower_command" =~ delete[[:space:]]+from ]] && [[ ! "$lower_command" =~ where ]]; then
+elif [[ "$sql_execution_context" == true && "$lower_command" =~ delete[[:space:]]+from ]] &&
+     { [[ "$sql_has_comment" == true ]] || [[ ! "$lower_command" =~ where ]]; }; then
   reason="DELETE FROM without WHERE clause"
 elif [[ "$lower_command" =~ $reset_hard_pattern ]]; then
   reason="git reset --hard"
@@ -122,6 +138,7 @@ fi
 
 log_path="${CLAUDE_HOOKS_LOG_PATH:-$HOME/.claude/hooks/blocked.log}"
 mkdir -p "$(dirname "$log_path")"
+chmod 600 "$log_path" 2>/dev/null || true
 timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 printf '{"timestamp":"%s","command":"%s","project_path":"%s","reason":"%s"}\n' \
   "$(json_escape "$timestamp")" \
