@@ -8,7 +8,10 @@ json_escape() {
   sed -E 's/\\/\\\\/g; s/"/\\"/g' <<< "$1" | tr -d '\n'
 }
 
-mapfile -d '' -t parsed_fields < <(
+parsed_fields=()
+while IFS= read -r -d '' parsed_field; do
+  parsed_fields+=("$parsed_field")
+done < <(
   printf '%s' "$payload" | node -e '
     let input = "";
     process.stdin.setEncoding("utf8");
