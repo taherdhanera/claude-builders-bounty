@@ -8,6 +8,7 @@ on:
       - "test/**"
       - ".claude/agents/pr-reviewer.md"
       - "README-pr-reviewer.md"
+      - ".github/workflows/claude-review.yml"
       - ".github/workflows/test-pr-reviewer.yml"
   push:
     paths:
@@ -16,6 +17,7 @@ on:
       - "test/**"
       - ".claude/agents/pr-reviewer.md"
       - "README-pr-reviewer.md"
+      - ".github/workflows/claude-review.yml"
       - ".github/workflows/test-pr-reviewer.yml"
 
 permissions:
