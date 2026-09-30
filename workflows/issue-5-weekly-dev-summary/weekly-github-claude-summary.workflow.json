@@ -254,7 +254,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 1200,\n  \"temperature\": 0.3,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": $json.prompt\n    }\n  ]\n}"
+        "jsonBody": "={{ {\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 1200,\n  \"temperature\": 0.3,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": $json.prompt\n    }\n  ]\n} }}"
       },
       "id": "4de7f03a-23c7-4f8a-8a12-763866a4c987",
       "name": "Generate Claude Summary",
@@ -285,7 +285,7 @@
         "url": "={{$env.WEEKLY_SUMMARY_DISCORD_WEBHOOK_URL}}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"content\": $json.message\n}"
+        "jsonBody": "={{ {\n  \"content\": $json.message\n} }}"
       },
       "id": "86221d1c-c7fa-41a4-bab2-8fd930d57406",
       "name": "Send Discord Summary",

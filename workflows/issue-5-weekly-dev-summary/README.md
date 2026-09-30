@@ -43,3 +43,10 @@ python workflows/issue-5-weekly-dev-summary/validate_workflow.py
 Expected output is documented in `VERIFICATION.md`. The GitHub API requests are implemented with HTTP Request nodes because n8n Code nodes are for data preparation/transformation, not external HTTP calls. A live n8n execution screenshot still requires real `ANTHROPIC_API_KEY` and Discord webhook values in the target n8n instance.
 
 The same validator and a deterministic greenfield smoke test run automatically in GitHub Actions for every change to this workflow.
+
+GitHub Actions also evaluates both HTTP JSON body expressions with the actual
+`n8n-workflow@2.32.1` resolver shipped with n8n `2.32.6`. These offline checks
+verify that prompt and message data resolve into JSON objects without losing
+quotes, newlines, Unicode, backslashes or expression-looking repository text.
+See `VERIFICATION.md` for the isolated local command. They make no Anthropic or
+Discord requests and do not replace the required successful live execution.

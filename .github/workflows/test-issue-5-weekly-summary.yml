@@ -25,11 +25,22 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+
       - name: Validate workflow export
         run: python workflows/issue-5-weekly-dev-summary/validate_workflow.py
 
       - name: Run deterministic smoke test
         run: python workflows/issue-5-weekly-dev-summary/smoke_greenfield.py
+
+      - name: Install isolated n8n expression resolver
+        run: npm install --prefix "$RUNNER_TEMP/issue-5-n8n-expression-check" --ignore-scripts --no-audit --no-fund --save-exact n8n-workflow@2.32.1
+
+      - name: Run real n8n resolver checks without HTTP calls
+        run: node workflows/issue-5-weekly-dev-summary/test_n8n_expressions.mjs "$RUNNER_TEMP/issue-5-n8n-expression-check"
 
       - name: Check whitespace
         run: git diff --check

@@ -33,9 +33,37 @@ It verifies representative commit, issue, and merged-PR data; EN/FR configuratio
 
 GitHub Actions runs both checks on every relevant push and pull request.
 
-## Real n8n import verification
+## Actual n8n expression-resolver regression checks (offline)
 
-The exact workflow JSON from this branch was imported into a clean local n8n
+The HTTP Request bodies use complete `={{ { ... } }}` expressions that return
+objects. A leading `=` without expression delimiters leaves `$json.prompt` or
+`$json.message` as literal text; the resulting body is not valid JSON. Both
+original exported bodies reproduced that failure in n8n's real resolver.
+
+Run the pinned resolver used by n8n `2.32.6` in an isolated runtime directory:
+
+```bash
+npm install --prefix /tmp/issue-5-n8n-expression-check --ignore-scripts --no-audit --no-fund --save-exact n8n-workflow@2.32.1
+node workflows/issue-5-weekly-dev-summary/test_n8n_expressions.mjs /tmp/issue-5-n8n-expression-check
+```
+
+On Windows, pass a disposable absolute directory instead of `/tmp/...`. The
+runtime is a test dependency, not part of the exported workflow. GitHub Actions
+installs it outside the checkout under the runner's temporary directory.
+
+Eight tests evaluate the exported bodies directly with
+`Expression.resolveSimpleParameterValue`: ordinary data, quoted multiline
+Unicode, expression-looking text, and backslash/control-character cases for
+both Anthropic and Discord. They assert the exact object and its JSON wire
+representation. The original export fails all eight; the corrected export
+passes all eight. These tests exercise the real expression resolver, not a
+mocked replacement, but do not run HTTP nodes, contact either service, or prove
+end-to-end workflow success. The live execution evidence below remains pending.
+
+## Prior real n8n import verification
+
+The pre-expression-correction workflow JSON at commit
+`b2f659a16beb2ada1ce39f3cf04bae5f2482ad9e` was imported into a clean local n8n
 `2.32.6` instance on Windows:
 
 ```text
@@ -52,8 +80,10 @@ HTTP 200
 {"status":"ok"}
 ```
 
-This confirms that n8n accepts and persists the exported workflow. It does not
-claim that the credential-dependent Anthropic and Discord requests completed.
+This confirms that n8n accepted and persisted that earlier export. It is
+historical import evidence, not a fresh import of the expression-corrected
+export, and does not claim that the credential-dependent Anthropic and Discord
+requests completed.
 
 ![Verified local n8n import and runtime health](n8n-import-verification.png)
 

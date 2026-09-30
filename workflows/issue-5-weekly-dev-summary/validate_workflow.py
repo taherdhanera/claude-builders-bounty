@@ -88,7 +88,13 @@ def main() -> None:
         require(pagination.get("maxRequests") == 10, f"{name} must bound pagination")
 
     for name in ("Generate Claude Summary", "Send Discord Summary"):
-        require(node_by_name(workflow, name).get("executeOnce") is True, f"{name} must execute once")
+        node = node_by_name(workflow, name)
+        require(node.get("executeOnce") is True, f"{name} must execute once")
+        body_expression = node["parameters"].get("jsonBody", "").strip()
+        require(
+            body_expression.startswith("={{") and body_expression.endswith("}}"),
+            f"{name} JSON body must use n8n expression delimiters",
+        )
 
     schedule = node_by_name(workflow, "Weekly Friday 5pm")["parameters"]["rule"]["interval"][0]
     require(schedule.get("field") == "weeks", "trigger must run weekly")
