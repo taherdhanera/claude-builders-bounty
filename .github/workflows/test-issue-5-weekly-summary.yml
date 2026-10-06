@@ -36,6 +36,9 @@ jobs:
       - name: Run deterministic smoke test
         run: python workflows/issue-5-weekly-dev-summary/smoke_greenfield.py
 
+      - name: Test owner-local evidence checker with synthetic fixtures
+        run: python workflows/issue-5-weekly-dev-summary/test_execution_evidence.py
+
       - name: Install isolated n8n expression resolver
         run: npm install --prefix "$RUNNER_TEMP/issue-5-n8n-expression-check" --ignore-scripts --no-audit --no-fund --save-exact n8n-workflow@2.32.1
 

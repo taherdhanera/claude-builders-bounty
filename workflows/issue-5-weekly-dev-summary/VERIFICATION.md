@@ -92,4 +92,9 @@ output. It is not a credential-dependent successful-execution screenshot.
 
 ## Live execution boundary
 
+See [OWNER-SANDBOX.md](OWNER-SANDBOX.md) for a repeatable owner-managed live
+acceptance run and optional owner-local execution structure checker. The checker
+does not establish authenticity or actual delivery. Its eight synthetic unit
+tests are not successful-execution evidence. Live acceptance remains pending.
+
 The workflow needs real `ANTHROPIC_API_KEY` and `WEEKLY_SUMMARY_DISCORD_WEBHOOK_URL` values to produce a live n8n execution screenshot. I did not fabricate that artifact from this environment.

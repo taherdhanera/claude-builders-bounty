@@ -34,6 +34,11 @@ This workflow generates a weekly narrative summary for a GitHub repository with 
 
 ## Validation
 
+For the remaining live acceptance check, use the separate
+[owner-managed sandbox checklist](OWNER-SANDBOX.md). Owners retain their keys and
+approve test spending themselves; no credentials belong in the PR. This does
+not change the five-step setup above or claim a successful live execution.
+
 The workflow JSON was validated locally with:
 
 ```bash
