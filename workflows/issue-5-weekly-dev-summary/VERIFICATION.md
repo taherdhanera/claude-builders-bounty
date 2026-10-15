@@ -29,7 +29,7 @@ Run the deterministic transformation and delivery-boundary smoke test with:
 python workflows/issue-5-weekly-dev-summary/smoke_greenfield.py
 ```
 
-It verifies representative commit, issue, and merged-PR data; EN/FR configuration; prompt construction; bounded paginated fetches; fail-loud retry guards; quiet-week placeholder filtering; and the 1,900-character Discord delivery boundary without external credentials.
+It verifies representative commit, issue, and merged-PR data; EN/FR configuration; prompt construction; bounded paginated fetches; fail-loud retry guards; quiet-week placeholder filtering; the frozen inclusive reporting window for closed issues and merged PRs; and the 1,900-character Discord delivery boundary without external credentials.
 
 GitHub Actions runs both checks on every relevant push and pull request.
 

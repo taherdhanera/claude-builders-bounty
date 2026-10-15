@@ -132,6 +132,39 @@ def main() -> None:
         "pagination-cap failure does not explain the incomplete coverage",
     )
 
+    # Later HTTP requests may observe events after Prepare Config froze `until`.
+    # Exercise the exported builder, including both inclusive window boundaries.
+    dates = (
+        "2026-08-10T23:59:59.999Z",
+        "2026-08-11T00:00:00.000Z",
+        "2026-08-17T12:00:00.000Z",
+        "2026-08-18T00:00:00.000Z",
+        "2026-08-18T00:00:00.001Z",
+    )
+    windowed = run_prompt_builder(
+        {
+            "Get Commits": [],
+            "Get Closed Issues": [
+                {"number": index, "title": "Window fixture", "closed_at": date}
+                for index, date in enumerate(dates, start=1)
+            ],
+            "Get Closed Pulls": [
+                {"number": index, "title": "Window fixture", "merged_at": date}
+                for index, date in enumerate(dates, start=11)
+            ],
+        }
+    )
+    require(windowed["ok"] is True, "frozen-window fixture failed to execute")
+    window_activity = windowed["output"][0]["json"]
+    require(
+        [item["number"] for item in window_activity["closedIssues"]] == [2, 3, 4],
+        "closed issues fall outside the frozen inclusive reporting window",
+    )
+    require(
+        [item["number"] for item in window_activity["mergedPulls"]] == [12, 13, 14],
+        "merged PRs fall outside the frozen inclusive reporting window",
+    )
+
     for name in ("Get Commits", "Get Closed Issues", "Get Closed Pulls"):
         require(node(name).get("executeOnce") is True, f"{name} can fan out duplicate requests")
         require(node(name).get("alwaysOutputData") is True, f"{name} can stop a quiet-week execution")
@@ -161,6 +194,7 @@ def main() -> None:
     print("discord-max=1900")
     print("github-fetch=paginated-fail-loud")
     print("github-cap=fail-closed")
+    print("github-window=inclusive-frozen-bounds")
     print("repository-content=untrusted")
 
 
