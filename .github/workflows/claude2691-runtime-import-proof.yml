@@ -1,0 +1,33 @@
+name: PR 2691 isolated n8n import and runtime proof
+
+on:
+  push:
+    branches: [proof/n8n2691-import-runtime-20261018]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: n8n2691-import-runtime-20261018
+  cancel-in-progress: false
+
+jobs:
+  import-runtime:
+    if: github.repository == 'taherdhanera/claude-builders-bounty' && github.ref == 'refs/heads/proof/n8n2691-import-runtime-20261018'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out the isolated proof branch without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Import the exact export and verify the inactive local runtime
+        run: python3 scripts/run_n8n2691_import_proof.py
+      - name: Retain full hash-framed evidence in the Actions log
+        if: always()
+        run: python3 scripts/run_n8n2691_import_proof.py --emit-only
