@@ -42,7 +42,8 @@ jobs:
           curl --fail --location --max-time 180 --output "$RUNNER_TEMP/ollama.tar.zst" https://github.com/ollama/ollama/releases/download/v0.40.6/ollama-linux-amd64.tar.zst
           echo "c164ab8b1b28e2a247c29719b8e404c423c5b83ae64c3ab4e59d50c7ff7fc5e0  $RUNNER_TEMP/ollama.tar.zst" | sha256sum --check --strict
           tar --zstd -xf "$RUNNER_TEMP/ollama.tar.zst" -C "$RUNNER_TEMP/ollama"
-          npm install --prefix "$RUNNER_TEMP/claude-cli" --ignore-scripts --no-audit --no-fund @anthropic-ai/claude-code@2.1.296
+          npm install --prefix "$RUNNER_TEMP/claude-cli" --no-audit --no-fund @anthropic-ai/claude-code@2.1.296
+          "$RUNNER_TEMP/claude-cli/node_modules/.bin/claude" --version
           echo "$RUNNER_TEMP/ollama/bin" >> "$GITHUB_PATH"
           echo "$RUNNER_TEMP/claude-cli/node_modules/.bin" >> "$GITHUB_PATH"
       - name: Start a local-only Ollama server and pull one public model
