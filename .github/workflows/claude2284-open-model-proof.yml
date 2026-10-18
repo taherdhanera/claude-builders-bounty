@@ -65,7 +65,7 @@ jobs:
           else:
               raise SystemExit('Local Ollama did not become ready; no retry of the model session.')
           PY
-          timeout 420 ollama pull qwen3.5:4b > "$RUNNER_TEMP/open-model-evidence/ollama-pull.log" 2>&1
+          timeout 420 ollama pull qwen3.5:2b > "$RUNNER_TEMP/open-model-evidence/ollama-pull.log" 2>&1
       - name: Execute one bounded read-only Claude Code Plan session
         timeout-minutes: 23
         run: python3 scripts/run_claude2284_open_model_proof.py

@@ -20,7 +20,14 @@ PROTOCOL_PATH = "templates/nextjs-sqlite-saas/verification/claude-code-greenfiel
 # Canonical LF Git blob. The preserved Windows fixture has mixed CRLF/LF bytes
 # and a different byte hash; normalizing only CRLF produces this exact blob.
 TEMPLATE_SHA256 = "4e4deac8329413770235df143c745613b27aa92dca0cc0fc7d0e76492c6efd08"
-MODEL = "qwen3.5:4b"
+MODEL = "qwen3.5:2b"
+DELIVERY_INSTRUCTIONS = (
+    "This is a read-only headless Plan-mode verification. The available tools are "
+    "Read, Glob and Grep. Do not call unavailable tools or create a plan file. "
+    "After inspecting the starter, return the complete plan directly as final text. "
+    "Questions remain governed by the exact first prompt's essential-safety rule. "
+    "These delivery instructions supply no technical decisions and change no rubric."
+)
 BASE_URL = "http://127.0.0.1:11434"
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER_TEMP = Path(os.environ.get("RUNNER_TEMP", "/tmp"))
@@ -187,7 +194,7 @@ def execute():
         before = snapshot()
         save("fixture-before.json", before)
         save("fixture-package.json", package)
-        command = ["claude", "--restricted", "--permission-mode", "plan", "--permission-prompts", "none", "--tools", "Read,Glob,Grep", "--allowedTools", "Read,Glob,Grep", "--disallowedTools", "mcp__*", "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}', "--setting-sources", "", "--disable-slash-commands", "--no-chrome", "--session-id", summary["sessionId"], "--no-session-persistence", "--model", MODEL, "--output-format", "stream-json", "--verbose", "-p", prompt]
+        command = ["claude", "--restricted", "--permission-mode", "plan", "--permission-prompts", "none", "--tools", "Read,Glob,Grep", "--allowedTools", "Read,Glob,Grep", "--disallowedTools", "mcp__*", "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}', "--setting-sources", "", "--disable-slash-commands", "--no-chrome", "--session-id", summary["sessionId"], "--no-session-persistence", "--model", MODEL, "--append-system-prompt", DELIVERY_INSTRUCTIONS, "--output-format", "stream-json", "--verbose", "-p", prompt]
         save("invocation.json", {"command": command, "cwd": str(FIXTURE), "timeoutSeconds": 1200, "credentialsInherited": False, "localDummyAuthOnly": True})
         summary["sessionStartedAtUtc"] = now()
         with (EVIDENCE / "claude-plan-output.jsonl").open("wb") as output, (EVIDENCE / "claude-plan-stderr.log").open("wb") as error:
