@@ -67,6 +67,13 @@ def clean_environment():
         "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
         "CLAUDE_CODE_MAX_RETRIES": "0", "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "2048",
         "CLAUDE_CODE_MAX_CONTEXT_TOKENS": "65536", "MAX_THINKING_TOKENS": "0",
+        # The CPU needs over five minutes to prefill the unchanged template
+        # after Read returns it. Keep a bounded 15-minute per-request allowance;
+        # the independent process deadline below still caps the entire session.
+        "API_TIMEOUT_MS": "900000", "API_FORCE_IDLE_TIMEOUT": "0",
+        "CLAUDE_STREAM_FIRST_BYTE_TIMEOUT_MS": "900000",
+        "CLAUDE_STREAM_IDLE_TIMEOUT_MS": "900000",
+        "CLAUDE_BYTE_STREAM_IDLE_TIMEOUT_MS": "900000",
         "OLLAMA_HOST": "127.0.0.1:11434", "OLLAMA_NO_CLOUD": "1",
         "OLLAMA_CONTEXT_LENGTH": "65536", "OLLAMA_NUM_PARALLEL": "1",
     })
