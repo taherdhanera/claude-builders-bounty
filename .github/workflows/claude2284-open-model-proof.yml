@@ -1,0 +1,79 @@
+name: PR 2284 supplemental open-model execution
+
+on:
+  push:
+    branches: [proof/claude2284-open-model-20261018]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: claude2284-open-model-proof-20261018
+  cancel-in-progress: false
+
+jobs:
+  proof:
+    if: github.repository == 'taherdhanera/claude-builders-bounty' && github.ref == 'refs/heads/proof/claude2284-open-model-20261018'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_NO_CLOUD: '1'
+      OLLAMA_CONTEXT_LENGTH: '65536'
+      OLLAMA_NUM_PARALLEL: '1'
+      OLLAMA_MAX_LOADED_MODELS: '1'
+      OLLAMA_KEEP_ALIVE: 25m
+    steps:
+      - name: Check out the isolated proof branch without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Prepare pinned public runtimes
+        timeout-minutes: 5
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ollama" "$RUNNER_TEMP/claude-cli" "$RUNNER_TEMP/open-model-evidence"
+          curl --fail --location --max-time 180 --output "$RUNNER_TEMP/ollama.tar.zst" https://github.com/ollama/ollama/releases/download/v0.40.6/ollama-linux-amd64.tar.zst
+          echo "c164ab8b1b28e2a247c29719b8e404c423c5b83ae64c3ab4e59d50c7ff7fc5e0  $RUNNER_TEMP/ollama.tar.zst" | sha256sum --check --strict
+          tar --zstd -xf "$RUNNER_TEMP/ollama.tar.zst" -C "$RUNNER_TEMP/ollama"
+          npm install --prefix "$RUNNER_TEMP/claude-cli" --ignore-scripts --no-audit --no-fund @anthropic-ai/claude-code@2.1.296
+          echo "$RUNNER_TEMP/ollama/bin" >> "$GITHUB_PATH"
+          echo "$RUNNER_TEMP/claude-cli/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Start a local-only Ollama server and pull one public model
+        timeout-minutes: 8
+        shell: bash
+        run: |
+          set -euo pipefail
+          ollama serve > "$RUNNER_TEMP/open-model-evidence/ollama-server.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/open-model-evidence/ollama-server.pid"
+          python3 - <<'PY'
+          import time, urllib.request
+          for attempt in range(30):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:11434/api/version', timeout=2) as response:
+                      print(response.read().decode())
+                  break
+              except OSError:
+                  time.sleep(1)
+          else:
+              raise SystemExit('Local Ollama did not become ready; no retry of the model session.')
+          PY
+          timeout 420 ollama pull qwen3.5:4b > "$RUNNER_TEMP/open-model-evidence/ollama-pull.log" 2>&1
+      - name: Execute one bounded read-only Claude Code Plan session
+        timeout-minutes: 23
+        run: python3 scripts/run_claude2284_open_model_proof.py
+      - name: Retain complete unedited session output in the Actions log
+        if: always()
+        shell: bash
+        run: |
+          set -eu
+          python3 scripts/run_claude2284_open_model_proof.py --emit-only
+          if [ -f "$RUNNER_TEMP/open-model-evidence/ollama-server.pid" ]; then
+            kill "$(cat "$RUNNER_TEMP/open-model-evidence/ollama-server.pid")" 2>/dev/null || true
+          fi
