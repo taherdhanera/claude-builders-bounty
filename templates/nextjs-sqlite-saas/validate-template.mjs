@@ -46,6 +46,8 @@ const requiredTerms = [
   "Claude Code",
   "Node.js",
   "Node.js 22",
+  "15.5.28",
+  "@types/better-sqlite3",
   "Edge Runtime",
   "persistent writable volume",
   "one writer",
@@ -109,6 +111,18 @@ if (!/middleware\.ts[\s\S]*auth redirects[\s\S]*coarse guards/i.test(template)) 
 
 if (!/native Node\.js driver[\s\S]*Edge Runtime[\s\S]*client code/i.test(template)) {
   errors.push("Missing better-sqlite3 Node-only runtime boundary");
+}
+
+if (!/pin `next`[^\n]*15\.5\.28/i.test(template)) {
+  errors.push("Missing patched Next.js 15.5.28 minimum-version rule");
+}
+
+if (!/better-sqlite3[^\n]*@types\/better-sqlite3[^\n]*devDependency/i.test(template)) {
+  errors.push("Missing conditional @types/better-sqlite3 devDependency rule");
+}
+
+if (!/create-next-app@15\.5\.28\b/.test(smokeProtocol)) {
+  errors.push("Smoke-test protocol must use the patched Next.js 15.5.28 starter");
 }
 
 if (!/await requireCurrentUser\(\)[\s\S]*ownerId: actor\.id/.test(template)) {

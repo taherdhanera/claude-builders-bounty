@@ -6,8 +6,8 @@ The goal is a small production system that is easy to reason about: server-first
 
 ## Stack And Versions
 
-- Next.js 15 App Router with React 19 and TypeScript strict mode.
-  Reason: App Router gives server components, route handlers, metadata, layouts, and streaming in one model; strict TypeScript catches data-contract drift before runtime.
+- Use Next.js 15 App Router with React 19 and TypeScript strict mode; pin `next` to an exact patched 15.x release, never below 15.5.28, and raise the pin when a newer security release is required.
+  Reason: App Router gives server components, route handlers, metadata, layouts, and streaming in one model; strict TypeScript catches data-contract drift, while an unbounded `15` range can resolve to a release with known request-handling vulnerabilities.
 
 - Use Node.js 22 as the baseline for projects created from this template; pin the same major in `package.json` `engines`, `.nvmrc`, CI, and deployment.
   Reason: a consistent runtime avoids dependency and native-module drift between development, automation, and production.
@@ -17,6 +17,9 @@ The goal is a small production system that is easy to reason about: server-first
 
 - Choose exactly one SQLite provider per environment: `better-sqlite3` for a single Node.js host with persistent local storage, or a server-side Turso/libSQL client for a remote database.
   Reason: local-file and remote-database connection, durability, and deployment assumptions differ; mixing them makes migrations and failure behavior unpredictable.
+
+- When choosing `better-sqlite3` in strict TypeScript, install `@types/better-sqlite3` as a devDependency; omit both local-driver packages on a Turso-only path.
+  Reason: `better-sqlite3` does not bundle TypeScript declarations, so a direct import otherwise fails type-checking and the production build.
 
 - Use Drizzle ORM for schema, migrations, and typed queries.
   Reason: Drizzle keeps SQL visible and migration files reviewable; avoid ORMs that hide query shape or create opaque runtime behavior.

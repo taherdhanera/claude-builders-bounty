@@ -5,7 +5,7 @@
 ## Isolated, read-only setup
 
 1. Use a disposable directory, Node.js 22, npm, and an account authorized to run Claude Code. Do not put real credentials, personal data, payment details, or production database files in the fixture.
-2. Create a fresh Next.js 15 starter: `npx create-next-app@15.5.26 acme-saas --ts --eslint --app --no-tailwind --use-npm --skip-install --disable-git`. If prompted, choose no `src/` directory and keep the default `@/*` alias. Skipping install avoids downloading project dependencies for this read-only check.
+2. Create a fresh Next.js 15 starter: `npx create-next-app@15.5.28 acme-saas --ts --eslint --app --no-tailwind --use-npm --skip-install --disable-git`. If prompted, choose no `src/` directory and keep the default `@/*` alias. Skipping install avoids downloading project dependencies for this read-only check.
 3. Copy this template's `CLAUDE.md` into `acme-saas/CLAUDE.md`. Leave the generated `package.json` intact; do not add prewritten database or feature code.
 4. Record `node --version`, `npm --version`, the `next` version in `package.json`, and `claude --version`. Start Claude Code in the fixture and select Plan mode before sending the prompt.
 

@@ -34,6 +34,8 @@ assert_contains "$instructions" 'one writer at a time' "SQLite single-writer gui
 assert_contains "$instructions" 'busy timeout' "bounded lock-wait guidance missing"
 assert_contains "$instructions" 'requireCurrentUser\(\)' "trusted identity boundary missing"
 assert_contains "$instructions" 'Server Actions' "Server Actions guidance missing"
+assert_contains "$instructions" 'pin `next`.*15\.5\.28' "patched Next.js minimum-version rule missing"
+assert_contains "$instructions" 'better-sqlite3.*@types/better-sqlite3.*devDependency' "conditional better-sqlite3 type dependency missing"
 
 reason_count="$(grep -Ec '\bReason:' "$instructions")"
 if [ "$reason_count" -lt 41 ]; then
@@ -48,4 +50,5 @@ if [ "$anti_pattern_count" -lt 9 ]; then
 fi
 
 assert_contains "$template_dir/verification/claude-code-greenfield-smoke.md" '^\*\*Status: Protocol only — NOT run in this pull request environment\.' "manual Claude Code test status must not imply it was run"
+assert_contains "$template_dir/verification/claude-code-greenfield-smoke.md" 'create-next-app@15\.5\.28' "manual smoke protocol must use the patched Next.js starter"
 echo "Template contract check passed: copied instructions, ${reason_count} reasoned rules, ${anti_pattern_count} anti-patterns, and Node/SQLite/auth boundaries verified. Claude Code execution is not performed by this check."
