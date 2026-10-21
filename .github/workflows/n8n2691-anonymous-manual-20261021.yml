@@ -1,0 +1,40 @@
+name: PR 2691 single supplemental manual-trigger engine attempt
+
+on:
+  push:
+    branches: [proof/n8n2691-anonymous-manual-20261021]
+    paths:
+      - scripts/free-n8n-2691/**
+      - .github/workflows/n8n2691-anonymous-manual-20261021.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: n8n2691-anonymous-manual-20261021
+  cancel-in-progress: false
+
+jobs:
+  supplemental-engine:
+    if: >-
+      github.repository == 'taherdhanera/claude-builders-bounty' &&
+      github.ref == 'refs/heads/proof/n8n2691-anonymous-manual-20261021' &&
+      github.event.repository.private == false &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out the isolated proof commit without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Execute the disposable manual-trigger variant once through the actual n8n engine
+        run: python3 scripts/free-n8n-2691/run_free_n8n_linux.py
+      - name: Retain all exact engine, provider and local-sink evidence in logs
+        if: always()
+        run: python3 scripts/free-n8n-2691/run_free_n8n_linux.py --emit-only
