@@ -1,0 +1,40 @@
+name: PR 2284 one paced anonymous supplemental CLI attempt
+
+on:
+  push:
+    branches: [proof/claude2284-anonymous-paced-20261021]
+    paths:
+      - scripts/free-2284/**
+      - .github/workflows/claude2284-anonymous-paced-20261021.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: claude2284-anonymous-paced-20261021
+  cancel-in-progress: false
+
+jobs:
+  supplemental-cli:
+    if: >-
+      github.repository == 'taherdhanera/claude-builders-bounty' &&
+      github.ref == 'refs/heads/proof/claude2284-anonymous-paced-20261021' &&
+      github.event.repository.private == false &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out one isolated proof commit without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Run the exact prompt once with the disclosed anonymous provider
+        run: python3 scripts/free-2284/run_free_cli_linux.py
+      - name: Print all exact hash-framed evidence without artifact storage
+        if: always()
+        run: python3 scripts/free-2284/run_free_cli_linux.py --emit-only
