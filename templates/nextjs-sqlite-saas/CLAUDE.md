@@ -4,6 +4,10 @@ Use this file as the operating contract for a greenfield SaaS product built with
 
 The goal is a small production system that is easy to reason about: server-first UI, explicit data access, boring migrations, predictable auth, and no hidden client-side business logic.
 
+This file prescribes the target architecture; it does not establish what a fresh starter already contains. Before working, inspect the actual project tree, `package.json`, any existing lockfile, and configuration. Distinguish existing files, dependencies, and scripts from additions that still need implementation or installation. Copying this file does not configure SQLite, authentication, migrations, tests, or command scripts. Never describe a command as ready to run without checking its script and prerequisites, or claim a build or check passed without executing it.
+
+The runtime boundary applies from the start: use Node.js 22, and keep database access, trusted auth helpers, and secret environment values server-only. Native `better-sqlite3` cannot run in the browser or Edge Runtime; database-backed Route Handlers using it must export `runtime = "nodejs"`. Turso/libSQL credentials also stay on the server. Resolve identity through `requireCurrentUser()` and fail closed if real authentication is not configured; never invent a session or trust a submitted owner id.
+
 ## Stack And Versions
 
 - Use Next.js 15 App Router with React 19 and TypeScript strict mode; pin `next` to an exact patched 15.x release, never below 15.5.28, and raise the pin when a newer security release is required.
@@ -39,6 +43,8 @@ The goal is a small production system that is easy to reason about: server-first
 ## Project Structure
 
 Use this structure unless the task explicitly requires a better local pattern:
+
+App Router API files belong inside `app/`: for example, `app/api/webhooks/stripe/route.ts`. The `api/` directory shown below is nested under `app/`, never a repository-root `api/` directory.
 
 ```text
 app/
@@ -367,7 +373,7 @@ export async function createProject(formData: FormData) {
 
 ## Commands
 
-Use these scripts in `package.json`:
+Use the following as the target script configuration, not an inventory of a fresh starter. Inspect the actual `package.json` first, preserve suitable existing scripts, and add missing scripts only with their required packages and configuration. In particular, do not assume `check`, tests, or `db:*` scripts exist. The lint example uses the ESLint CLI for the starter's flat configuration.
 
 ```json
 {
@@ -376,7 +382,7 @@ Use these scripts in `package.json`:
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "lint": "next lint",
+    "lint": "eslint",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "db:generate": "drizzle-kit generate",
@@ -389,10 +395,10 @@ Use these scripts in `package.json`:
 
 Rules:
 
-- Run `npm run check` before opening a PR.
+- Once its scripts and dependencies are configured, run `npm run check` before opening a PR; otherwise report the missing setup and the existing checks actually run.
   Reason: type, lint, test, and build failures are cheaper locally than in review.
 
-- Run `npm run db:generate` after editing schema and commit the migration.
+- Once Drizzle and its generation script are configured, run `npm run db:generate` after editing schema and commit the migration.
   Reason: schema and migrations must stay in sync.
 
 - Do not add a new package manager unless the repo already uses it.
@@ -446,7 +452,7 @@ When changing this project:
 2. Locate the route, feature module, schema, and tests that own it.
 3. Make the smallest coherent change.
 4. Add or update validation at the closest boundary.
-5. Run the relevant test first, then `npm run check` when the change is broad.
+5. Run the relevant configured test first, then `npm run check` when the change is broad and that script's prerequisites exist; report missing setup instead of claiming unavailable checks ran.
 6. In the final response, report files changed, validation run, and any residual risk.
 
 If requirements are ambiguous, choose the safer production behavior and document the assumption in the PR. Do not pause for clarification unless the wrong assumption could cause data loss, payment errors, or a security issue.
