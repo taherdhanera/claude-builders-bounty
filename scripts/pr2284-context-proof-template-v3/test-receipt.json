@@ -1,0 +1,141 @@
+{
+  "startedAtUtc": "2026-10-22T21:55:27.421257+00:00",
+  "completedAtUtc": "2026-10-22T21:55:29.589490+00:00",
+  "status": "offline_tests_passed_prepared_only",
+  "command": [
+    "C:\\Users\\hp\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "-B",
+    "-m",
+    "unittest",
+    "-v",
+    "test_native_boundaries",
+    "test_context_harness",
+    "test_resource_phases",
+    "test_fixture_observation"
+  ],
+  "exitCode": 0,
+  "testCount": 42,
+  "testElapsedSeconds": 0.623,
+  "skipped": 3,
+  "skipReason": "Windows lacks actual symlink creation privilege; Linux workflow executes all three actual cases and cannot skip them.",
+  "outputTail": "----------------------------------------------------------------------\r\nRan 42 tests in 0.623s\r\n\r\nOK (skipped=3)\r\n",
+  "networkCalls": 0,
+  "gitCalls": 0,
+  "modelCalls": 0,
+  "workflowRuns": 0,
+  "previousV3HarnessUnchanged": true,
+  "sourceManifestSha256": "49874d0f3d45041d3f0920b77cab571a850c6f16fa5ceb6942c330d3cc29d071",
+  "unchangedCompanions": [
+    "context-prompt.txt",
+    "guard_fixture_paths.py",
+    "native_http_recorder.py",
+    "test_native_boundaries.py",
+    "test_resource_phases.py",
+    "resource-regression-fixture.json"
+  ],
+  "launcherOnlyIdentitySubstitutions": true,
+  "sourceHead": "84788f9ec4f713723671c792db985527b1411f27",
+  "templateSha256": "33653f02bf65e4195ce56c0a16e11be3380acbb906a8f431109fe7208cf37d0f",
+  "branch": "proof/claude2284-context-template-20261023",
+  "scriptsPrefix": "scripts/pr2284-context-proof-template-v3/",
+  "workflowPath": ".github/workflows/claude2284-context-template-20261023.yml",
+  "newWorkflowStep": "Run all 42 offline tests on Linux before model launch; symlink cases cannot skip on Linux.",
+  "unchangedScope": [
+    "prompt",
+    "permission mode",
+    "model",
+    "runtime",
+    "path guard",
+    "recorder",
+    "resource phase policy",
+    "budgets",
+    "frozen rubric"
+  ],
+  "semanticAcceptanceVerified": false,
+  "receivedCashVerified": false,
+  "preparedFiles": {
+    "context-prompt.txt": {
+      "bytes": 148,
+      "sha256": "501f52017a265951855123041c1214083140c378a0c26802b5ed7b11f55ae8c8"
+    },
+    "guard_fixture_paths.py": {
+      "bytes": 1909,
+      "sha256": "0b38ac71326185653d9e492cf8890fedb4181e0281c5c3d042835f6ce28092d8"
+    },
+    "native_http_recorder.py": {
+      "bytes": 11104,
+      "sha256": "31d664f793121e01cca83811efb1ba779b5ef42777a8f0444ae3a7ac909f623f"
+    },
+    "offline-tests-before-unicode-fix-stderr.txt": {
+      "bytes": 8018,
+      "sha256": "6dcf846f4bd92a89d4f3cede99cba32f3d839f23558bf3d8431fbbcc7f49c23d"
+    },
+    "offline-tests-before-unicode-fix-stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "offline-tests-stderr.txt": {
+      "bytes": 8018,
+      "sha256": "54a1abb7c5ab5b892413c7072ee60df93e77bcfffe327c1cfea7ed69cf24d2ee"
+    },
+    "offline-tests-stdout.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "preparation-before-unicode-fix.diff": {
+      "bytes": 20393,
+      "sha256": "bd30eab462e08a50ba09fcfc0af7f74ed9916b29e8b8cfd3d664b420aabce0c4"
+    },
+    "preparation.diff": {
+      "bytes": 20400,
+      "sha256": "ff0fb8182d111f6d8cba1143e6193f9951de4b02b92eade3ed519e3cba482c9a"
+    },
+    "README.md": {
+      "bytes": 9067,
+      "sha256": "4a4296d1ec535d512e0e6787c384b25b6f34b08bfd0e3c2ac4e9cd79aa11607f"
+    },
+    "resource-regression-fixture.json": {
+      "bytes": 3701,
+      "sha256": "18408814f0d36a0369a4caab54d025bbe7dd285970b3ad3eaa84ed177d14f940"
+    },
+    "run_native_ollama_linux.py": {
+      "bytes": 53321,
+      "sha256": "713050f34106413235d2660c97443cd1221dea8824a127e3414368df23df687c"
+    },
+    "test-receipt-before-unicode-fix.json": {
+      "bytes": 4293,
+      "sha256": "e274f154eca70c3f89727993181172525888d0a785c52f77e3b68b8654c1d0bc"
+    },
+    "test_context_harness.py": {
+      "bytes": 11403,
+      "sha256": "c2a2a688c1b964a13000f6b0b4d6127c880325437577092e0a05c146d99f2285"
+    },
+    "test_fixture_observation.py": {
+      "bytes": 8216,
+      "sha256": "4c4f6cf966d9994be054b0c9dafb02a8f8f615795aa1a925e5f492a3d44d0bd4"
+    },
+    "test_native_boundaries.py": {
+      "bytes": 8278,
+      "sha256": "b5af511fc06aa0940dc058d2e4a2e3a01753a26e5f74b114887a6594446a8e79"
+    },
+    "test_resource_phases.py": {
+      "bytes": 12762,
+      "sha256": "f8f3b5d3bf051b3e5f88ab6af883c6fe934e9d386745572ca3ad0f631bc89086"
+    },
+    "v3-harness-source-manifest.json": {
+      "bytes": 2496,
+      "sha256": "49874d0f3d45041d3f0920b77cab571a850c6f16fa5ceb6942c330d3cc29d071"
+    },
+    "workflow-template.yml": {
+      "bytes": 1736,
+      "sha256": "c521dca2f3d74f62cb8029d5dcdfb892786a05bea3596f38b4a7bd5e23ca9795"
+    }
+  },
+  "reviewCorrection": "Replaced accidental packaging mojibake with explicit Unicode escapes, preserving intended UTF-8 fixture bytes. Only test fixture literal changed after review; launcher and workflow hashes unchanged.",
+  "utf8FixtureExpectedHex": "52c3a973756dc3a920e280942070726f6a6563740a",
+  "utf8FixtureAstVerified": true,
+  "priorReceipt": {
+    "file": "test-receipt-before-unicode-fix.json",
+    "sha256": "e274f154eca70c3f89727993181172525888d0a785c52f77e3b68b8654c1d0bc"
+  }
+}

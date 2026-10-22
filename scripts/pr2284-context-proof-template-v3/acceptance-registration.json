@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 3,
+  "registeredAtUtc": "2026-10-22T21:57:18.667116+00:00",
+  "sourceHead": "84788f9ec4f713723671c792db985527b1411f27",
+  "scope": "Same neutral context prompt and frozen revision2 criteria, with source-identity-only amendment for general template clarity fix.",
+  "evaluatorFilesSha256": {
+    "requirements.json": "aeca314e0a025c95406a41cc2652eff0c447894df815ba0ab5c17e4f00861168",
+    "acceptance-rubric.md": "0e13fb136f42e02ee64f768b1450e0e214ace34efe366de3528677714b840507",
+    "identity-amendment-clarity-v3-final.json": "1097fcd0cc96a73a24510e61fc79586e5325d8809f4401fe04c7c68f09cb0fa9",
+    "template-v3-final-review.json": "35f8b98442df9869f21e4c24e919cd3fe0d09d83d77c9d732f1b2ffd8c458ab6"
+  },
+  "promptSha256": "501f52017a265951855123041c1214083140c378a0c26802b5ed7b11f55ae8c8",
+  "launcherSha256": "713050f34106413235d2660c97443cd1221dea8824a127e3414368df23df687c",
+  "workflowSha256": "c521dca2f3d74f62cb8029d5dcdfb892786a05bea3596f38b4a7bd5e23ca9795",
+  "offlineTestReceiptSha256": "8016aa1621ea765fb85a946a93c688e921650b96e475746323846f7616309904",
+  "templateSha256": "33653f02bf65e4195ce56c0a16e11be3380acbb906a8f431109fe7208cf37d0f",
+  "priorFailedRun": 39857306451,
+  "priorFailureAssessmentSha256": "2536f07e5135b1033eab65e0750d0d2df8cb97900f88507da32b9c6bc8aada95",
+  "changes": [
+    "General source clarity fix",
+    "Complete paired raw file sizes alongside preserved hash maps",
+    "Offline Linux regressions before inference"
+  ],
+  "evaluatorVisibleToModel": false,
+  "frozenBeforeDispatch": true,
+  "modelExecutedAtRegistration": false,
+  "priorFailureRemainsFailed": true
+}
