@@ -1,0 +1,40 @@
+name: PR 2284 separate context-comprehension proof with native Ollama 9B
+
+on:
+  push:
+    branches: [proof/claude2284-context-resource-20261023]
+    paths:
+      - scripts/pr2284-context-proof-resource-v2/**
+      - .github/workflows/claude2284-context-resource-20261023.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: claude2284-context-resource-20261023
+  cancel-in-progress: false
+
+jobs:
+  supplemental-cli:
+    if: >-
+      github.repository == 'taherdhanera/claude-builders-bounty' &&
+      github.ref == 'refs/heads/proof/claude2284-context-resource-20261023' &&
+      github.event.repository.private == false &&
+      github.run_attempt == 1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Check out one isolated proof commit without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Run the disclosed context prompt once using native local Ollama
+        run: python3 -B scripts/pr2284-context-proof-resource-v2/run_native_ollama_linux.py
+      - name: Print all exact hash-framed evidence without artifact storage
+        if: always()
+        run: python3 -B scripts/pr2284-context-proof-resource-v2/run_native_ollama_linux.py --emit-only

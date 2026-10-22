@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "registeredAtUtc": "2026-10-22T21:25:24.486195+00:00",
+  "sourceHead": "26994b38341d36692b81291d689b0e3adad0cff2",
+  "scope": "Separately disclosed context test; unchanged revision2 evaluator and prompt.",
+  "evaluatorFilesSha256": {
+    "requirements.json": "aeca314e0a025c95406a41cc2652eff0c447894df815ba0ab5c17e4f00861168",
+    "acceptance-rubric.md": "0e13fb136f42e02ee64f768b1450e0e214ace34efe366de3528677714b840507",
+    "resource-v2-review.json": "b0f86fd3da56034a7f106a5d237070e7cd29a4d323eb7c6bb28d2ccdeb2f2bb1"
+  },
+  "promptSha256": "501f52017a265951855123041c1214083140c378a0c26802b5ed7b11f55ae8c8",
+  "launcherSha256": "813081ae762b143f50439442f6db6cf0a37d06ed35320d43abf82ffa5810c0be",
+  "workflowSha256": "e887d7f9a14336319e5c895fc3bd28be8a2771603783ce053675007c8b943557",
+  "offlineTestReceiptSha256": "27062d75b579945a62c6f7c24c2b4df13da8185a4948ed91364b328fcbb275c3",
+  "priorFailedRun": 39854899148,
+  "priorFailureAssessmentSha256": "08493906e82ae2a68227163a14d209020c6cd01a7124fc73e7b8abc52c677b82",
+  "resourcePolicyChange": "Loading paging recorded separately; RAM floor throughout; one synchronized inference baseline before spawn; same 64MiB inference cutoff.",
+  "evaluatorVisibleToModel": false,
+  "frozenBeforeDispatch": true,
+  "modelExecutedAtRegistration": false,
+  "priorFailureRemainsFailed": true
+}

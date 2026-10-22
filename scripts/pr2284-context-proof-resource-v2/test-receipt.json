@@ -1,0 +1,101 @@
+{
+  "createdAtUtc": "2026-10-22T21:23:35.165933+00:00",
+  "status": "offline_tests_passed_prepared_only",
+  "command": "python -B -m unittest -v test_native_boundaries test_context_harness test_resource_phases",
+  "testCount": 34,
+  "testElapsedSeconds": 0.311,
+  "exitCode": 0,
+  "toolOutputChunkId": "a3dbe4",
+  "observedOutputTail": "Ran 34 tests in 0.311s\n\nOK",
+  "networkCalls": 0,
+  "gitCalls": 0,
+  "modelCalls": 0,
+  "workflowRuns": 0,
+  "reviewCorrection": "Latch telemetry open/read/write/flush/close exceptions before releasing the same launch lock; deterministic competing-launch regression covers all five failure sites.",
+  "priorReceipt": {
+    "file": "test-receipt-before-race-fix.json",
+    "sha256": "4a24f401d1105ecbdd0f184a41f596612e6bc19cb6f30eba70e2ca17a0399e9b"
+  },
+  "intermediateOfflineTestFailure": {
+    "toolOutputChunkId": "cf6721",
+    "reason": "Windows lacks os.killpg; test mock corrected with create=True; no production issue or live action."
+  },
+  "v1Unchanged": true,
+  "v1ActualSha256": {
+    "baseline-source-manifest.json": "277aef3518efa5a77406900a200aa9a17e345deb37b720fac1625d022840bd09",
+    "context-prompt.txt": "501f52017a265951855123041c1214083140c378a0c26802b5ed7b11f55ae8c8",
+    "guard_fixture_paths.py": "0b38ac71326185653d9e492cf8890fedb4181e0281c5c3d042835f6ce28092d8",
+    "native_http_recorder.py": "31d664f793121e01cca83811efb1ba779b5ef42777a8f0444ae3a7ac909f623f",
+    "preparation.diff": "36c7d7dc3db08a8d76057f1a642a493fbc0fff8b2ff2f3e52d55182169b1160d",
+    "README.md": "d8a4d62f4dd8c649a93afbe9e4fc90bbcf74a319703d1caaa625852a6610a61c",
+    "run_native_ollama_linux.py": "1cd9379e7628f01c30e5508aa705da4d6efdaef8675f4c0e50f26eee1d98b6ff",
+    "test-receipt.json": "475a92884cd39f954c532c6639cd6c56268c05edee8f1cb9f289eee57244d2f4",
+    "test_context_harness.py": "5ef4157437f650dd53e387880d6f139a017683281d1ca8b055ef387946258518",
+    "test_native_boundaries.py": "b5af511fc06aa0940dc058d2e4a2e3a01753a26e5f74b114887a6594446a8e79",
+    "workflow-template.yml": "f8afb68a54c9b08173e372b39409905d1adef0236e287a0f2d2c7c0cb0730ae9"
+  },
+  "preparedFiles": {
+    "context-prompt.txt": {
+      "sha256": "501f52017a265951855123041c1214083140c378a0c26802b5ed7b11f55ae8c8",
+      "bytes": 148
+    },
+    "guard_fixture_paths.py": {
+      "sha256": "0b38ac71326185653d9e492cf8890fedb4181e0281c5c3d042835f6ce28092d8",
+      "bytes": 1909
+    },
+    "native_http_recorder.py": {
+      "sha256": "31d664f793121e01cca83811efb1ba779b5ef42777a8f0444ae3a7ac909f623f",
+      "bytes": 11104
+    },
+    "preparation-before-race-fix.diff": {
+      "sha256": "27c2664b266933dd1e984a76acd5fe2eb7eec169064156d06d6ac1eab50bb185",
+      "bytes": 15088
+    },
+    "preparation.diff": {
+      "sha256": "cc02258be73ddb38737487c23760f9b18bd984897ddd97596a6b60c1b8d3388d",
+      "bytes": 16284
+    },
+    "README.md": {
+      "sha256": "b356b9d2f5e81e6a9c30993740b99f8d7db6833fe7f500e4c06c13ddb33a7fdd",
+      "bytes": 6978
+    },
+    "resource-regression-fixture.json": {
+      "sha256": "18408814f0d36a0369a4caab54d025bbe7dd285970b3ad3eaa84ed177d14f940",
+      "bytes": 3701
+    },
+    "run_native_ollama_linux.py": {
+      "sha256": "813081ae762b143f50439442f6db6cf0a37d06ed35320d43abf82ffa5810c0be",
+      "bytes": 51927
+    },
+    "test-receipt-before-race-fix.json": {
+      "sha256": "4a24f401d1105ecbdd0f184a41f596612e6bc19cb6f30eba70e2ca17a0399e9b",
+      "bytes": 3487
+    },
+    "test_context_harness.py": {
+      "sha256": "26b4c045cd947c7ab809d5acb7876346d9dc6dc9e79d76df27100cbafba3da10",
+      "bytes": 10880
+    },
+    "test_native_boundaries.py": {
+      "sha256": "b5af511fc06aa0940dc058d2e4a2e3a01753a26e5f74b114887a6594446a8e79",
+      "bytes": 8278
+    },
+    "test_resource_phases.py": {
+      "sha256": "f8f3b5d3bf051b3e5f88ab6af883c6fe934e9d386745572ca3ad0f631bc89086",
+      "bytes": 12762
+    },
+    "v1-source-manifest.json": {
+      "sha256": "30ed4133aabbd3729f5ed695fa53127cb678a5b01422e53656f753a5dedf7c40",
+      "bytes": 1155
+    },
+    "workflow-template.yml": {
+      "sha256": "e887d7f9a14336319e5c895fc3bd28be8a2771603783ce053675007c8b943557",
+      "bytes": 1465
+    }
+  },
+  "promptUnchanged": true,
+  "pathGuardUnchanged": true,
+  "recorderUnchanged": true,
+  "rubricModified": false,
+  "semanticAcceptanceVerified": false,
+  "receivedCashVerified": false
+}
