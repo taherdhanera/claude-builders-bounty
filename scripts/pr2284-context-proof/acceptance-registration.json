@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "registeredAtUtc": "2026-10-22T21:04:24.211301+00:00",
+  "sourceHead": "26994b38341d36692b81291d689b0e3adad0cff2",
+  "scope": "Separately disclosed context understanding test; does not pass prior feature-plan protocol.",
+  "evaluatorFilesSha256": {
+    "requirements.json": "aeca314e0a025c95406a41cc2652eff0c447894df815ba0ab5c17e4f00861168",
+    "acceptance-rubric.md": "0e13fb136f42e02ee64f768b1450e0e214ace34efe366de3528677714b840507",
+    "implementation-review.md": "fd1fea453046822b7d39cabe229a7c98edd74dd29c313b4b8e15cbc922c288db"
+  },
+  "promptSha256": "501f52017a265951855123041c1214083140c378a0c26802b5ed7b11f55ae8c8",
+  "launcherSha256": "1cd9379e7628f01c30e5508aa705da4d6efdaef8675f4c0e50f26eee1d98b6ff",
+  "workflowSha256": "f8afb68a54c9b08173e372b39409905d1adef0236e287a0f2d2c7c0cb0730ae9",
+  "offlineTestReceiptSha256": "475a92884cd39f954c532c6639cd6c56268c05edee8f1cb9f289eee57244d2f4",
+  "evaluatorVisibleToModel": false,
+  "frozenBeforeDispatch": true,
+  "modelExecutedAtRegistration": false,
+  "note": "Evaluator files retained separately; exact proof commit bound in immutable pre-dispatch receipt."
+}

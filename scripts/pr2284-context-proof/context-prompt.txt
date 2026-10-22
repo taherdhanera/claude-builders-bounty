@@ -1,0 +1,1 @@
+What project is this, and what conventions and constraints should you follow when working in it? Give a concise overview based on the project files.

@@ -1,0 +1,68 @@
+{
+  "createdAtUtc": "2026-10-22T21:01:08.139328+00:00",
+  "status": "offline_tests_passed_prepared_only",
+  "command": "python -B -m unittest -v test_native_boundaries test_context_harness",
+  "workingDirectory": "C:\\Users\\hp\\Documents\\Codex\\2026-05-15\\goal-earn-with-codex-by-finding\\work\\pr2284-context-proof-20261023",
+  "pythonVersion": "3.12",
+  "testCount": 24,
+  "testElapsedSeconds": 0.374,
+  "exitCode": 0,
+  "observedOutputTail": "Ran 24 tests in 0.374s\n\nOK",
+  "toolOutputChunkId": "6e0c2b",
+  "networkCalls": 0,
+  "gitCalls": 0,
+  "modelCalls": 0,
+  "workflowRuns": 0,
+  "baselineUnchanged": true,
+  "baselineActualSha256": {
+    "run_native_ollama_linux.py": "55e30710451d75976c5b41fcdd7d4afb5d374f03f82623e9057cfb421c6ec103",
+    "native_http_recorder.py": "cd539f5b13df207537a35680f62c5408b3ddb32d659dbeb86987e80de3ba4ecf",
+    "guard_fixture_paths.py": "0b38ac71326185653d9e492cf8890fedb4181e0281c5c3d042835f6ce28092d8",
+    "test_native_boundaries.py": "3272e56bfe4eea53779726a570c5d235d4bb71435678fee5478c9e2bad7d3fd9",
+    "workflow-template.yml": "fb699603330c2c14c585055e9cbdddeb684802f24a4b0f27a7ad96e1d3b6c108"
+  },
+  "preparedFiles": {
+    "baseline-source-manifest.json": {
+      "sha256": "277aef3518efa5a77406900a200aa9a17e345deb37b720fac1625d022840bd09",
+      "bytes": 635
+    },
+    "context-prompt.txt": {
+      "sha256": "501f52017a265951855123041c1214083140c378a0c26802b5ed7b11f55ae8c8",
+      "bytes": 148
+    },
+    "guard_fixture_paths.py": {
+      "sha256": "0b38ac71326185653d9e492cf8890fedb4181e0281c5c3d042835f6ce28092d8",
+      "bytes": 1909
+    },
+    "native_http_recorder.py": {
+      "sha256": "31d664f793121e01cca83811efb1ba779b5ef42777a8f0444ae3a7ac909f623f",
+      "bytes": 11104
+    },
+    "preparation.diff": {
+      "sha256": "36c7d7dc3db08a8d76057f1a642a493fbc0fff8b2ff2f3e52d55182169b1160d",
+      "bytes": 18779
+    },
+    "README.md": {
+      "sha256": "d8a4d62f4dd8c649a93afbe9e4fc90bbcf74a319703d1caaa625852a6610a61c",
+      "bytes": 5328
+    },
+    "run_native_ollama_linux.py": {
+      "sha256": "1cd9379e7628f01c30e5508aa705da4d6efdaef8675f4c0e50f26eee1d98b6ff",
+      "bytes": 48257
+    },
+    "test_context_harness.py": {
+      "sha256": "5ef4157437f650dd53e387880d6f139a017683281d1ca8b055ef387946258518",
+      "bytes": 10862
+    },
+    "test_native_boundaries.py": {
+      "sha256": "b5af511fc06aa0940dc058d2e4a2e3a01753a26e5f74b114887a6594446a8e79",
+      "bytes": 8278
+    },
+    "workflow-template.yml": {
+      "sha256": "f8afb68a54c9b08173e372b39409905d1adef0236e287a0f2d2c7c0cb0730ae9",
+      "bytes": 1393
+    }
+  },
+  "semanticAcceptanceVerified": false,
+  "receivedCashVerified": false
+}
