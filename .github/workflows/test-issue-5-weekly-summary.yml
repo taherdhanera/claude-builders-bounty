@@ -36,6 +36,9 @@ jobs:
       - name: Run deterministic smoke test
         run: python workflows/issue-5-weekly-dev-summary/smoke_greenfield.py
 
+      - name: Test exported Discord transformation without HTTP calls
+        run: node --test workflows/issue-5-weekly-dev-summary/test_delivery.mjs
+
       - name: Test owner-local evidence checker with synthetic fixtures
         run: python workflows/issue-5-weekly-dev-summary/test_execution_evidence.py
 

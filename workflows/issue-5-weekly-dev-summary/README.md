@@ -29,7 +29,7 @@ This workflow generates a weekly narrative summary for a GitHub repository with 
 - Retries transient GitHub failures three times, then fails the workflow instead of generating a plausible-looking summary from partial activity. Reaching the 1,000-item pagination ceiling also fails closed.
 - Sends those events to the active `claude-sonnet-4-6` model with a narrative summary prompt.
 - Treats repository activity as untrusted data and tells Claude never to follow instructions embedded in commit messages, issue or PR titles, author names, or URLs.
-- Posts the final summary to Discord.
+- Posts the final summary to Discord. Combines text blocks in order and stops with an explicit error if Claude returns no usable text, instead of sending a placeholder.
 - Trims unusually long Claude output before delivery so the Discord webhook stays below its message-size limit.
 
 ## Validation
