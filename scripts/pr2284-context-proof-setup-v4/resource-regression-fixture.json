@@ -1,0 +1,141 @@
+{
+  "sourceRunId": 39854899148,
+  "sourceSha256": {
+    "resources-before-model-load.json": "82d6430706e2fc78f3abf90c5d43dd5397d8d1c2d32182bae73aee9181380467",
+    "resources-after-model-load.json": "b6772195d832cff9bd1e709f8adc753d66badb9607b4a0cced3854a9b76d6303",
+    "resource-stop.json": "e487901aa3c7663fda51b0a557f9569bc628d6cd20d4c7caec72c44c9cb021f7",
+    "model-resource-samples.jsonl": "b9cb6053c8bdfde0ec845e82f091df70aa7c4fc3ebb6d673ebfb7bddb1e5eae0"
+  },
+  "beforeLoad": {
+    "atUtc": "2026-10-22T21:10:12.897948+00:00",
+    "memory": {
+      "MemTotalBytes": 16770748416,
+      "MemAvailableBytes": 15401652224,
+      "SwapTotalBytes": 3221221376,
+      "SwapFreeBytes": 3221221376
+    },
+    "pagingPages": {
+      "pswpin": 0,
+      "pswpout": 0
+    },
+    "pageBytes": 4096,
+    "diskFreeBytes": 82906177536,
+    "cpuCount": 4,
+    "loadAverage": [
+      1.34521484375,
+      0.37841796875,
+      0.1259765625
+    ]
+  },
+  "afterLoad": {
+    "atUtc": "2026-10-22T21:10:21.253235+00:00",
+    "memory": {
+      "MemTotalBytes": 16770748416,
+      "MemAvailableBytes": 6775554048,
+      "SwapTotalBytes": 3221221376,
+      "SwapFreeBytes": 3143589888
+    },
+    "pagingPages": {
+      "pswpin": 8,
+      "pswpout": 18626
+    },
+    "pageBytes": 4096,
+    "diskFreeBytes": 82906128384,
+    "cpuCount": 4,
+    "loadAverage": [
+      1.3720703125,
+      0.416015625,
+      0.14111328125
+    ]
+  },
+  "stop": {
+    "atUtc": "2026-10-22T21:10:22.900874+00:00",
+    "reason": "RAM floor or material paging reached",
+    "sample": {
+      "atUtc": "2026-10-22T21:10:22.900548+00:00",
+      "memory": {
+        "MemTotalBytes": 16770748416,
+        "MemAvailableBytes": 6588813312,
+        "SwapTotalBytes": 3221221376,
+        "SwapFreeBytes": 3143872512
+      },
+      "pagingPages": {
+        "pswpin": 487,
+        "pswpout": 18626
+      },
+      "pageBytes": 4096,
+      "diskFreeBytes": 82906038272,
+      "cpuCount": 4,
+      "loadAverage": [
+        1.3720703125,
+        0.416015625,
+        0.14111328125
+      ]
+    }
+  },
+  "samples": [
+    {
+      "atUtc": "2026-10-22T21:10:12.899165+00:00",
+      "memory": {
+        "MemTotalBytes": 16770748416,
+        "MemAvailableBytes": 15401652224,
+        "SwapTotalBytes": 3221221376,
+        "SwapFreeBytes": 3221221376
+      },
+      "pagingPages": {
+        "pswpin": 0,
+        "pswpout": 0
+      },
+      "pageBytes": 4096,
+      "diskFreeBytes": 82906169344,
+      "cpuCount": 4,
+      "loadAverage": [
+        1.34521484375,
+        0.37841796875,
+        0.1259765625
+      ]
+    },
+    {
+      "atUtc": "2026-10-22T21:10:17.899901+00:00",
+      "memory": {
+        "MemTotalBytes": 16770748416,
+        "MemAvailableBytes": 7668125696,
+        "SwapTotalBytes": 3221221376,
+        "SwapFreeBytes": 3221155840
+      },
+      "pagingPages": {
+        "pswpin": 0,
+        "pswpout": 16
+      },
+      "pageBytes": 4096,
+      "diskFreeBytes": 82906148864,
+      "cpuCount": 4,
+      "loadAverage": [
+        1.3173828125,
+        0.38916015625,
+        0.130859375
+      ]
+    },
+    {
+      "atUtc": "2026-10-22T21:10:22.900548+00:00",
+      "memory": {
+        "MemTotalBytes": 16770748416,
+        "MemAvailableBytes": 6588813312,
+        "SwapTotalBytes": 3221221376,
+        "SwapFreeBytes": 3143872512
+      },
+      "pagingPages": {
+        "pswpin": 487,
+        "pswpout": 18626
+      },
+      "pageBytes": 4096,
+      "diskFreeBytes": 82906038272,
+      "cpuCount": 4,
+      "loadAverage": [
+        1.3720703125,
+        0.416015625,
+        0.14111328125
+      ]
+    }
+  ]
+}

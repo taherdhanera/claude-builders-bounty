@@ -1,0 +1,32 @@
+{
+  "registeredAtUtc": "2026-10-25T11:45:26.362989+00:00",
+  "sourceHead": "ea91dd78efa7acf00c8c114d83ce03eb02dc1da1",
+  "templateSha256": "327223b923046d5afc1e11a31748c7dd5af7537d7b8d40ff7ec8cd724c76b830",
+  "priorFailedRun": 39861484296,
+  "priorFailureRemainsFailed": true,
+  "samePrompt": true,
+  "sameModelRuntimePermissionsBudgets": true,
+  "evaluatorVisibleToModel": false,
+  "rubricRevision": 2,
+  "criteriaChanged": false,
+  "identityAmendmentOnly": true,
+  "authority": "Latest user instruction to fix remaining work; one new attempt after material product-source clarification, no paid service or new sign-in.",
+  "reviewHashes": {
+    "acceptance-rubric.md": "0e13fb136f42e02ee64f768b1450e0e214ace34efe366de3528677714b840507",
+    "requirements.json": "aeca314e0a025c95406a41cc2652eff0c447894df815ba0ab5c17e4f00861168",
+    "assessment-39861484296.json": "1adf1d71ad4c18675614a1023a966a6437dbc6def3552ef7ef15cccf07acabde"
+  },
+  "preparedHashes": {
+    "run_native_ollama_linux.py": "e04c11a2315daedc0b73b1fe82f43185b94e185c06dea9ac3915dd2e6c906d41",
+    "native_http_recorder.py": "31d664f793121e01cca83811efb1ba779b5ef42777a8f0444ae3a7ac909f623f",
+    "guard_fixture_paths.py": "0b38ac71326185653d9e492cf8890fedb4181e0281c5c3d042835f6ce28092d8",
+    "test_native_boundaries.py": "b5af511fc06aa0940dc058d2e4a2e3a01753a26e5f74b114887a6594446a8e79",
+    "test_context_harness.py": "15dd96c65bde20128deb16aeb68021cdf745fd1fcc3537ad6765f7f0f6f634de",
+    "test_resource_phases.py": "f8f3b5d3bf051b3e5f88ab6af883c6fe934e9d386745572ca3ad0f631bc89086",
+    "test_fixture_observation.py": "4c4f6cf966d9994be054b0c9dafb02a8f8f615795aa1a925e5f492a3d44d0bd4",
+    "resource-regression-fixture.json": "18408814f0d36a0369a4caab54d025bbe7dd285970b3ad3eaa84ed177d14f940",
+    "context-prompt.txt": "501f52017a265951855123041c1214083140c378a0c26802b5ed7b11f55ae8c8",
+    "workflow-template.yml": "7e57bd98db9c2cc26859755b46bb3d1dfad1cca500607488e560952d4401c7fa"
+  },
+  "scope": "Separate supplemental context comprehension, not original full-feature Plan or Anthropic inference; no automatic semantic pass."
+}
