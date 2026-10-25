@@ -6,6 +6,12 @@ The goal is a small production system that is easy to reason about: server-first
 
 This file prescribes the target architecture; it does not establish what a fresh starter already contains. Before working, inspect the actual project tree, `package.json`, any existing lockfile, and configuration. Distinguish existing files, dependencies, and scripts from additions that still need implementation or installation. Copying this file does not configure SQLite, authentication, migrations, tests, or command scripts. Never describe a command as ready to run without checking its script and prerequisites, or claim a build or check passed without executing it.
 
+- Report dependency declarations, resolved versions, installation, and successful execution as separate facts. `package.json` declares requirements; a lockfile records a resolution. Neither proves that packages are installed. A starter created with `--skip-install` has no installed dependencies until an installation is actually verified. When installation has not been checked, say so.
+  Reason: a declared tool or package cannot establish that a development command is runnable.
+
+- Before proposing implementation, summarize the observed starter separately from the target architecture, including existing scripts and missing setup. Carry forward the server-only identity boundary: unauthenticated requests are rejected, and protected operations remain unavailable until real authentication is integrated. A submitted user or owner id never establishes identity.
+  Reason: an overview should preserve the constraints needed to start safely instead of implying that a fresh scaffold already implements them.
+
 The runtime boundary applies from the start: use Node.js 22, and keep database access, trusted auth helpers, and secret environment values server-only. Native `better-sqlite3` cannot run in the browser or Edge Runtime; database-backed Route Handlers using it must export `runtime = "nodejs"`. Turso/libSQL credentials also stay on the server. Resolve identity through `requireCurrentUser()` and fail closed if real authentication is not configured; never invent a session or trust a submitted owner id.
 
 ## Stack And Versions
@@ -374,6 +380,8 @@ export async function createProject(formData: FormData) {
 ## Commands
 
 Use the following as the target script configuration, not an inventory of a fresh starter. Inspect the actual `package.json` first, preserve suitable existing scripts, and add missing scripts only with their required packages and configuration. In particular, do not assume `check`, tests, or `db:*` scripts exist. The lint example uses the ESLint CLI for the starter's flat configuration.
+
+For each recommended command, state whether its script already exists and whether its packages and configuration are available. For example, an existing `dev` script still needs installed dependencies; `start` also needs a successful production build. Proposed test and database commands need their runner, tests, provider, schema and configuration before use. In read-only work, report those prerequisites instead of installing packages or adding scripts.
 
 ```json
 {
