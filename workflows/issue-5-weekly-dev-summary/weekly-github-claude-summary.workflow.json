@@ -285,7 +285,7 @@
         "url": "={{$env.WEEKLY_SUMMARY_DISCORD_WEBHOOK_URL}}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ {\n  \"content\": $json.message\n} }}"
+        "jsonBody": "={{ {\n  \"content\": $json.message,\n  \"allowed_mentions\": { \"parse\": [] }\n} }}"
       },
       "id": "86221d1c-c7fa-41a4-bab2-8fd930d57406",
       "name": "Send Discord Summary",

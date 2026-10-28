@@ -51,12 +51,16 @@ On Windows, pass a disposable absolute directory instead of `/tmp/...`. The
 runtime is a test dependency, not part of the exported workflow. GitHub Actions
 installs it outside the checkout under the runner's temporary directory.
 
-Eight tests evaluate the exported bodies directly with
+Ten tests evaluate the exported bodies directly with
 `Expression.resolveSimpleParameterValue`: ordinary data, quoted multiline
-Unicode, expression-looking text, and backslash/control-character cases for
-both Anthropic and Discord. They assert the exact object and its JSON wire
-representation. The original export fails all eight; the corrected export
-passes all eight. These tests exercise the real expression resolver, not a
+Unicode, expression-looking text, backslash/control-character cases, and
+untrusted mention text for both Anthropic and Discord. They assert the exact
+object and its JSON wire representation. Discord payloads preserve the text
+and set `allowed_mentions.parse` to an empty array, suppressing mention parsing
+as documented in [Discord's allowed-mentions contract](https://docs.discord.com/developers/resources/message#allowed-mentions-object).
+The original malformed-body export failed the original eight checks. The
+mention-guard regression fails all five Discord cases against the pre-guard
+export; the guarded export passes all ten. These tests exercise the real expression resolver, not a
 mocked replacement, but do not run HTTP nodes, contact either service, or prove
 end-to-end workflow success. The live execution evidence below remains pending.
 

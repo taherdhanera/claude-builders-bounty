@@ -30,6 +30,7 @@ This workflow generates a weekly narrative summary for a GitHub repository with 
 - Sends those events to the active `claude-sonnet-4-6` model with a narrative summary prompt.
 - Treats repository activity as untrusted data and tells Claude never to follow instructions embedded in commit messages, issue or PR titles, author names, or URLs.
 - Posts the final summary to Discord. Combines text blocks in order and stops with an explicit error if Claude returns no usable text, instead of sending a placeholder.
+- Disables Discord mention parsing so quoted repository or generated text cannot unexpectedly notify users, roles, or everyone.
 - Trims unusually long Claude output before delivery so the Discord webhook stays below its message-size limit.
 
 ## Validation

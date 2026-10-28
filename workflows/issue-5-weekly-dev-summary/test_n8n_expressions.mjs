@@ -24,6 +24,7 @@ const fixtures = [
   ["quoted multiline Unicode", 'Title: "Ship onboarding"\nContributor: Renée 🚀\nSecond line.'],
   ["expression-looking repository content", 'Literal data: {{ $env.UNUSED_TEST_SECRET }} and {{ $json.notAField }}'],
   ["backslashes and control characters", "Path C:\\fixture\\project\r\nTabbed\tactivity"],
+  ["untrusted mention text", "Quoted activity: <@123456789012345678> <@&234567890123456789> @everyone @here"],
 ];
 
 for (const [nodeName, inputKey] of [
@@ -50,7 +51,7 @@ for (const [nodeName, inputKey] of [
             temperature: 0.3,
             messages: [{ role: "user", content: text }],
           }
-        : { content: text };
+        : { content: text, allowed_mentions: { parse: [] } };
       assert.deepEqual(resolved, expected);
       // n8n's HTTP Request node accepts resolved objects directly; ensure the
       // eventual JSON wire representation preserves every input character.
